@@ -1,0 +1,11 @@
+product_id,product_name,selling_price,cost_price,inventory,inventory_age_days,demand_level,min_margin_pct,max_discount_pct
+P001,Premium Wireless Headphones,5000,3500,40,12,high,15,5
+P002,Bluetooth Speaker,3000,1600,450,95,low,12,20
+P003,USB-C Cable,800,250,900,120,low,10,25
+P004,Mechanical Keyboard,4500,3000,80,20,medium,15,8
+P005,Wireless Mouse,1800,700,600,75,medium,12,15
+P006,Webcam,3500,2200,30,8,high,18,5
+P007,Laptop Stand,2200,900,500,110,low,10,25
+P008,Power Bank,2500,1400,250,60,medium,12,12
+P009,Monitor Light,2800,1300,350,85,low,10,20
+P010,Premium Keyboard,7000,5200,25,15,high,18,5
