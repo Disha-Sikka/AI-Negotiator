@@ -106,3 +106,74 @@ def calculate_negotiability_score(product):
     )
 
     return round(score, 2)
+
+def calculate_item_negotiability(product, quantity):
+    """
+    Calculate negotiability for a specific cart item.
+
+    Product-level factors:
+    - inventory age
+    - demand
+    - inventory
+    - margin
+
+    Transaction-level factor:
+    - quantity
+    """
+
+    product_score = calculate_negotiability_score(product)
+
+    qty_score = quantity_score(quantity)
+
+    # 80% product economics
+    # 20% quantity signal
+    final_score = (
+        product_score * 0.80
+        + qty_score * 0.20
+    )
+
+    return round(final_score, 2)
+
+def quantity_score(quantity):
+    """
+    Higher quantity means stronger justification
+    for a quantity-based discount.
+    """
+
+    if quantity >= 10:
+        return 100
+
+    if quantity >= 5:
+        return 80
+
+    if quantity >= 3:
+        return 60
+
+    if quantity == 2:
+        return 40
+
+    return 0
+
+def cart_size_score(cart):
+    """
+    Score the size of a customer's cart.
+
+    More distinct products indicate stronger
+    cart-level negotiation potential.
+    """
+
+    distinct_products = len(cart)
+
+    if distinct_products >= 5:
+        return 100
+
+    if distinct_products >= 4:
+        return 80
+
+    if distinct_products >= 3:
+        return 60
+
+    if distinct_products == 2:
+        return 30
+
+    return 0

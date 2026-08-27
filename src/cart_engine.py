@@ -1,7 +1,9 @@
 import pandas as pd
 
 from src.pricing_engine import calculate_discount_floor
-from src.negotiability import calculate_negotiability_score
+from src.negotiability import (
+    calculate_item_negotiability
+)
 
 def calculate_cart(cart, products):
     """
@@ -127,10 +129,10 @@ def allocate_discount(cart_summary, requested_discount):
     total_score = 0
 
     for item in items:
-        score = calculate_negotiability_score(
-            item["product"]
-        )
-
+        score = calculate_item_negotiability(
+    item["product"],
+    item["quantity"]
+)
         item["negotiability_score"] = score
         total_score += score
 

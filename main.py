@@ -11,12 +11,12 @@ products = load_products()
 
 cart = [
     {
-        "product_id": "P010",
+        "product_id": "P002",
         "quantity": 1
     },
     {
         "product_id": "P003",
-        "quantity": 2
+        "quantity": 1
     },
     {
         "product_id": "P007",
@@ -24,14 +24,13 @@ cart = [
     }
 ]
 
-
 cart_summary = calculate_cart(
     cart,
     products
 )
 
 
-requested_discount = 500
+requested_discount = 2000
 
 
 allocations = allocate_discount(
