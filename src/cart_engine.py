@@ -1,6 +1,7 @@
 import pandas as pd
 
 from src.pricing_engine import calculate_discount_floor
+from src.negotiability import calculate_negotiability_score
 
 def calculate_cart(cart, products):
     """
@@ -40,14 +41,15 @@ def calculate_cart(cart, products):
         total_floor_price += floor_value
 
         cart_details.append({
-            "product_id": product_id,
-            "product_name": product["product_name"],
-            "quantity": quantity,
-            "selling_price": selling_price,
-            "floor_price": floor_price,
-            "original_value": original_value,
-            "floor_value": floor_value
-        })
+    "product_id": product_id,
+    "product_name": product["product_name"],
+    "quantity": quantity,
+    "selling_price": selling_price,
+    "floor_price": floor_price,
+    "original_value": original_value,
+    "floor_value": floor_value,
+    "product": product
+})
 
     return {
         "cart_details": cart_details,
@@ -112,3 +114,62 @@ def generate_cart_initial_offer(
     offer_price = original_price - discount
 
     return round(offer_price, 2)
+
+def allocate_discount(cart_summary, requested_discount):
+    """
+    Allocate a customer's requested discount across
+    products based on their negotiability scores.
+    """
+
+    items = cart_summary["cart_details"]
+
+    # Calculate negotiability for each product
+    total_score = 0
+
+    for item in items:
+        score = calculate_negotiability_score(
+            item["product"]
+        )
+
+        item["negotiability_score"] = score
+        total_score += score
+
+    # Allocate discount proportionally
+    allocations = []
+
+    for item in items:
+
+        score = item["negotiability_score"]
+
+        if total_score == 0:
+            allocated_discount = 0
+        else:
+            allocated_discount = (
+                requested_discount
+                * score
+                / total_score
+            )
+
+        # Never discount below the product floor
+        maximum_allowed_discount = (
+            item["original_value"]
+            - item["floor_value"]
+        )
+
+        allocated_discount = min(
+            allocated_discount,
+            maximum_allowed_discount
+        )
+
+        allocations.append({
+            "product_id": item["product_id"],
+            "product_name": item["product_name"],
+            "quantity": item["quantity"],
+            "negotiability_score": score,
+            "allocated_discount": round(
+                allocated_discount,
+                2
+            )
+        })
+
+    return allocations
