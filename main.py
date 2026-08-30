@@ -17,3 +17,6 @@ print(customer_message)
 
 print("\n===== GEMINI EXTRACTION =====")
 print(result)
+
+print("\n===== DATA TYPE =====")
+print(type(result))
