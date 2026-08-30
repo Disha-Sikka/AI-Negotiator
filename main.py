@@ -1,4 +1,9 @@
+from src.data_loader import load_products
 from src.llm_agent import extract_negotiation_request
+from src.product_resolver import resolve_product
+
+
+products = load_products()
 
 
 customer_message = (
@@ -7,16 +12,36 @@ customer_message = (
 )
 
 
-result = extract_negotiation_request(
+request = extract_negotiation_request(
     customer_message
 )
 
 
-print("\n===== CUSTOMER MESSAGE =====")
-print(customer_message)
+print("\n===== GEMINI REQUEST =====")
+print(request)
 
-print("\n===== GEMINI EXTRACTION =====")
-print(result)
 
-print("\n===== DATA TYPE =====")
-print(type(result))
+print("\n===== PRODUCT RESOLUTION =====")
+
+
+for item in request.items:
+
+    product = resolve_product(
+        item.item_name,
+        products
+    )
+
+    if product is not None:
+
+        print(
+            f"{item.item_name} "
+            f"→ "
+            f"{product['product_name']} "
+            f"({product['product_id']})"
+        )
+
+    else:
+
+        print(
+            f"{item.item_name} → NOT FOUND"
+        )
