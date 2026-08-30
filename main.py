@@ -1,9 +1,5 @@
 from src.data_loader import load_products
-
-from src.cart_engine import (
-    calculate_cart,
-    allocate_discount
-)
+from src.negotiation_session import NegotiationSession
 
 
 products = load_products()
@@ -24,57 +20,56 @@ cart = [
     }
 ]
 
-cart_summary = calculate_cart(
+
+session = NegotiationSession(
     cart,
     products
 )
 
 
-requested_discount = 2000
-
-
-allocations = allocate_discount(
-    cart_summary,
-    requested_discount
-)
-
-
-print("\n===== CART =====")
-
-for item in cart_summary["cart_details"]:
-
-    print(
-        f"{item['product_name']} × "
-        f"{item['quantity']} | "
-        f"₹{item['original_value']:.0f}"
-    )
-
-
-print("\n===== DISCOUNT ALLOCATION =====")
-
-total_allocated = 0
-
-for item in allocations:
-
-    print(
-        f"{item['product_name']} | "
-        f"Negotiability: "
-        f"{item['negotiability_score']}/100 | "
-        f"Discount: "
-        f"₹{item['allocated_discount']:.2f}"
-    )
-
-    total_allocated += item[
-        "allocated_discount"
-    ]
-
-
-print("\n===== RESULT =====")
+print("\n===== NEGOTIATION START =====")
 
 print(
-    f"Customer requested: ₹{requested_discount:.2f}"
+    f"Original price: "
+    f"₹{session.original_price:.2f}"
 )
 
 print(
-    f"Actually allocated: ₹{total_allocated:.2f}"
+    f"Merchant floor: "
+    f"₹{session.floor_price:.2f}"
 )
+
+print(
+    f"Initial AI offer: "
+    f"₹{session.current_offer:.2f}"
+)
+
+
+customer_offers = [
+    5500,
+    5200,
+    5000,
+    4800,
+    4600
+]
+
+
+for customer_offer in customer_offers:
+
+    print(
+        f"\nCustomer: "
+        f"₹{customer_offer:.2f}"
+    )
+
+    response = session.respond_to_customer_offer(
+        customer_offer
+    )
+
+    print(
+        f"Agent: "
+        f"{response['decision']} → "
+        f"₹{response['offer']:.2f}"
+    )
+
+    if response["decision"] == "ACCEPT":
+        break
