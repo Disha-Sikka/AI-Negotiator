@@ -26,6 +26,10 @@ session = NegotiationSession(
     products
 )
 
+print(
+    f"Negotiation mode: "
+    f"{session.negotiation_mode}"
+)
 
 print("\n===== NEGOTIATION START =====")
 

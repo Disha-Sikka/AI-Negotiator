@@ -35,6 +35,7 @@ class NegotiationSession:
         self.round_number = 0
 
         self.history = []
+        self.negotiation_mode = (self.determine_negotiation_mode())
 
     def respond_to_customer_offer(self, customer_offer):
 
@@ -73,13 +74,36 @@ class NegotiationSession:
                 # Customer offer is above floor
         # but below our current offer.
 
-        midpoint = (
+                # Concession increases gradually with each round
+        concession_rates = {
+            1: 0.20,
+            2: 0.25,
+            3: 0.30,
+            4: 0.35,
+            5: 0.40
+        }
+
+        concession_rate = concession_rates.get(
+            self.round_number,
+            0.40
+        )
+
+        gap = (
             self.current_offer
-            + customer_offer
-        ) / 2
+            - customer_offer
+        )
+
+        concession = (
+            gap * concession_rate
+        )
+
+        counter_offer = (
+            self.current_offer
+            - concession
+        )
 
         counter_offer = max(
-            midpoint,
+            counter_offer,
             self.floor_price
         )
 
@@ -105,3 +129,21 @@ class NegotiationSession:
     def get_history(self):
 
         return self.history
+
+    def determine_negotiation_mode(self):
+
+        distinct_products = len(self.cart)
+
+        total_units = sum(
+            item["quantity"]
+            for item in self.cart
+        )
+
+        if distinct_products == 1:
+
+            if total_units == 1:
+                return "SINGLE_ITEM"
+
+            return "QUANTITY"
+
+        return "CART"
