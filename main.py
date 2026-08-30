@@ -1,18 +1,19 @@
-from src.llm_agent import ask_gemini
+from src.llm_agent import extract_negotiation_request
 
 
-message = """
-You are an online shopping negotiation assistant.
-
-A customer says:
-
-"I'm buying 5 USB-C cables. Can you give me a better price?"
-
-Reply naturally in one sentence.
-"""
+customer_message = (
+    "I'll take the speaker, cable and laptop stand. "
+    "Can you give me a good deal?"
+)
 
 
-response = ask_gemini(message)
+result = extract_negotiation_request(
+    customer_message
+)
 
-print("\n===== GEMINI RESPONSE =====")
-print(response)
+
+print("\n===== CUSTOMER MESSAGE =====")
+print(customer_message)
+
+print("\n===== GEMINI EXTRACTION =====")
+print(result)

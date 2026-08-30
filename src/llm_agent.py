@@ -15,11 +15,37 @@ if not api_key:
 client = genai.Client(api_key=api_key)
 
 
-def ask_gemini(message):
+def extract_negotiation_request(message):
+
+    prompt = f"""
+You are an AI shopping negotiation assistant.
+
+Analyze the customer's message and extract their negotiation request.
+
+Customer message:
+"{message}"
+
+Return ONLY valid JSON with these fields:
+
+{{
+    "intent": "NEGOTIATE" or "OTHER",
+    "requested_price": number or null,
+    "requested_discount": number or null,
+    "quantity": number or null
+}}
+
+Rules:
+- requested_price means the total price the customer wants to pay.
+- requested_discount means the total discount the customer is asking for.
+- If the customer doesn't mention a price or discount, use null.
+- quantity should only be included if the customer explicitly mentions a quantity.
+- Do not invent values.
+"""
 
     response = client.models.generate_content(
         model="gemini-2.5-flash",
-        contents=message
+        contents=prompt
     )
 
     return response.text
+
