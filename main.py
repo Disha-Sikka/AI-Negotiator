@@ -5,27 +5,40 @@ from src.cart_builder import build_cart
 from src.negotiation_session import NegotiationSession
 
 
-# Load product catalog
+# ==========================================
+# LOAD PRODUCT CATALOG
+# ==========================================
+
 products = load_products()
 
 
-# Customer's message
-customer_message = (
-    "I'll take the speaker, cable and laptop stand. "
-    "Can you do ₹5000?"
-)
+print("\n===== AI PAYMENT NEGOTIATOR =====")
 
 
-# 1. Understand customer message
+# ==========================================
+# STEP 1: GET INITIAL CUSTOMER MESSAGE
+# ==========================================
+
+customer_message = input("\nYou: ")
+
+
+# ==========================================
+# STEP 2: UNDERSTAND CUSTOMER MESSAGE
+# ==========================================
+
 request = extract_negotiation_request(
     customer_message
 )
+
 
 print("\n===== GEMINI REQUEST =====")
 print(request)
 
 
-# 2. Resolve products
+# ==========================================
+# STEP 3: RESOLVE PRODUCTS
+# ==========================================
+
 print("\n===== PRODUCT RESOLUTION =====")
 
 for item in request.items:
@@ -51,7 +64,10 @@ for item in request.items:
         )
 
 
-# 3. Build cart
+# ==========================================
+# STEP 4: BUILD CART
+# ==========================================
+
 cart = build_cart(
     request,
     products
@@ -69,7 +85,10 @@ for item in cart:
     )
 
 
-# 4. Start negotiation session
+# ==========================================
+# STEP 5: CREATE NEGOTIATION SESSION
+# ==========================================
+
 session = NegotiationSession(
     cart,
     products
@@ -79,8 +98,7 @@ session = NegotiationSession(
 print("\n===== NEGOTIATION SESSION =====")
 
 print(
-    f"Negotiation mode: "
-    f"{session.negotiation_mode}"
+    f"Mode: {session.negotiation_mode}"
 )
 
 print(
@@ -98,7 +116,10 @@ print(
     f"₹{session.current_offer:.2f}"
 )
 
-# 5. Process customer's price offer
+
+# ==========================================
+# STEP 6: PROCESS INITIAL OFFER
+# ==========================================
 
 if request.requested_price is not None:
 
@@ -106,19 +127,119 @@ if request.requested_price is not None:
         request.requested_price
     )
 
-    print("\n===== NEGOTIATION RESULT =====")
+    print("\n===== NEGOTIATION =====")
 
-    print(
-        f"Customer offered: "
-        f"₹{request.requested_price:.2f}"
+    if result["decision"] == "ACCEPT":
+
+        print(
+            f"AI: Deal! "
+            f"I can accept ₹{result['offer']:.2f}."
+        )
+
+    elif result["decision"] == "COUNTER":
+
+        print(
+            f"AI: I can't go as low as "
+            f"₹{request.requested_price:.2f}, "
+            f"but I can offer "
+            f"₹{result['offer']:.2f}."
+        )
+
+    elif result["decision"] == "BELOW_FLOOR":
+
+        print(
+            f"AI: That's below the lowest price "
+            f"I can offer. I can do "
+            f"₹{result['offer']:.2f}."
+        )
+
+
+# ==========================================
+# STEP 7: CONTINUE NEGOTIATION
+# ==========================================
+
+while True:
+
+    customer_message = input("\nYou: ")
+
+    if customer_message.lower() in [
+        "exit",
+        "quit",
+        "done"
+    ]:
+
+        print("\nNegotiation ended.")
+        break
+
+
+    # Ask Gemini to understand the new message
+
+    request = extract_negotiation_request(
+        customer_message
     )
 
-    print(
-        f"Decision: "
-        f"{result['decision']}"
-    )
 
-    print(
-        f"Agent offer: "
-        f"₹{result['offer']:.2f}"
-    )
+    print("\n===== GEMINI REQUEST =====")
+    print(request)
+
+
+    # --------------------------------------
+    # Customer accepts current offer
+    # --------------------------------------
+
+    if request.intent == "ACCEPT":
+
+        print(
+            f"\nAI: Deal! "
+            f"I'll accept ₹{session.current_offer:.2f}."
+        )
+
+        break
+
+
+    # --------------------------------------
+    # Customer provided a price
+    # --------------------------------------
+
+    elif request.requested_price is not None:
+
+        result = session.respond_to_customer_offer(
+            request.requested_price
+        )
+
+        if result["decision"] == "ACCEPT":
+
+            print(
+                f"\nAI: Deal! "
+                f"I'll accept ₹{result['offer']:.2f}."
+            )
+
+            break
+
+
+        elif result["decision"] == "COUNTER":
+
+            print(
+                f"\nAI: I can improve the price to "
+                f"₹{result['offer']:.2f}."
+            )
+
+
+        elif result["decision"] == "BELOW_FLOOR":
+
+            print(
+                f"\nAI: I can't go that low. "
+                f"My best available price is "
+                f"₹{result['offer']:.2f}."
+            )
+
+
+    # --------------------------------------
+    # Customer didn't provide a price
+    # --------------------------------------
+
+    else:
+
+        print(
+            "\nAI: What price did you have in mind?"
+        )

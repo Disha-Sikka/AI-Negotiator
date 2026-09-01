@@ -42,19 +42,67 @@ Customer message:
 "{message}"
 
 Extract:
-1. Whether the customer is negotiating.
+
+1. Customer intent.
 2. The total price they want, if mentioned.
 3. The discount they want, if mentioned.
 4. The products they mention.
 
-Rules:
-- intent must be NEGOTIATE or OTHER.
+Intent rules:
+
+- NEGOTIATE:
+  The customer is asking for a lower price or proposing a price.
+
+- ACCEPT:
+  The customer agrees to the current offer.
+  Examples:
+  "okay deal"
+  "deal"
+  "sounds good"
+  "I'll take it"
+  "yes"
+  "that's fine"
+  "done"
+
+- OTHER:
+  The message is unrelated to negotiation or does not clearly
+  indicate negotiation or acceptance.
+
+Price rules:
+
 - requested_price is the total amount the customer wants to pay.
 - requested_discount is the discount amount requested.
 - Use null when the customer does not provide a value.
+- Do not invent prices or discounts.
+
+Product rules:
+
 - Only include products explicitly mentioned by the customer.
+- Do not invent products.
 - Every product MUST use the field "item_name".
-- Do not invent products, prices, quantities, or discounts.
+
+Examples:
+
+Customer: "Can you do ₹5000?"
+→ intent = NEGOTIATE
+→ requested_price = 5000
+
+Customer: "Can you give me ₹500 off?"
+→ intent = NEGOTIATE
+→ requested_discount = 500
+
+Customer: "No, I want ₹4800."
+→ intent = NEGOTIATE
+→ requested_price = 4800
+
+Customer: "Okay deal."
+→ intent = ACCEPT
+
+Customer: "Sounds good, I'll take it."
+→ intent = ACCEPT
+
+Customer: "What is the delivery time?"
+→ intent = OTHER
 """
 
     response = client.models.generate_content(
