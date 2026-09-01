@@ -2,8 +2,10 @@ import re
 
 
 def normalize(text):
+
     text = str(text).lower()
     text = re.sub(r"[^a-z0-9\s]", "", text)
+
     return text.strip()
 
 
@@ -20,12 +22,19 @@ def resolve_product(product_name, products):
         )
 
         if query in actual_name:
+
             matches.append(product)
 
-    if len(matches) == 1:
-        return matches[0]
+    if len(matches) == 0:
+        return None
 
-    if len(matches) > 1:
-        return matches[0]
+    product = matches[0]
 
-    return None
+    return {
+        "product_id": product["product_id"],
+        "product_name": product["product_name"],
+        "selling_price": float(product["selling_price"]),
+        "min_margin_pct": float(product["min_margin_pct"]),
+        "max_discount_pct": float(product["max_discount_pct"]),
+        "demand_level": product["demand_level"]
+    }

@@ -1,6 +1,7 @@
 from src.data_loader import load_products
 from src.llm_agent import extract_negotiation_request
 from src.product_resolver import resolve_product
+from src.cart_builder import build_cart
 
 
 products = load_products()
@@ -23,7 +24,6 @@ print(request)
 
 print("\n===== PRODUCT RESOLUTION =====")
 
-
 for item in request.items:
 
     product = resolve_product(
@@ -31,7 +31,7 @@ for item in request.items:
         products
     )
 
-    if product is not None:
+    if product:
 
         print(
             f"{item.item_name} "
@@ -45,3 +45,20 @@ for item in request.items:
         print(
             f"{item.item_name} → NOT FOUND"
         )
+
+
+cart = build_cart(
+    request,
+    products
+)
+
+
+print("\n===== GENERATED CART =====")
+
+for item in cart:
+
+    print(
+        f"{item['product_name']} × "
+        f"{item['quantity']} | "
+        f"₹{item['unit_price']:.2f}"
+    )
