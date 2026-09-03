@@ -14,6 +14,10 @@ button {
   border: none;
 }
 
+/* =========================================
+   HEADER
+========================================= */
+
 .header {
   height: 70px;
   padding: 0 7%;
@@ -51,11 +55,19 @@ button {
   justify-content: center;
 }
 
+/* =========================================
+   MAIN
+========================================= */
+
 main {
   max-width: 1150px;
   margin: auto;
   padding: 60px 25px;
 }
+
+/* =========================================
+   HERO
+========================================= */
 
 .hero {
   text-align: center;
@@ -80,6 +92,10 @@ main {
   line-height: 1.6;
 }
 
+/* =========================================
+   PRODUCTS
+========================================= */
+
 .products h2 {
   font-size: 28px;
   margin-bottom: 25px;
@@ -87,8 +103,7 @@ main {
 
 .product-grid {
   display: grid;
-  grid-template-columns:
-    repeat(3, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 
@@ -140,6 +155,15 @@ main {
   font-size: 15px;
 }
 
+.product-card button:hover,
+.negotiate-button:hover {
+  opacity: 0.9;
+}
+
+/* =========================================
+   CART
+========================================= */
+
 .cart-section {
   margin-top: 60px;
   background: white;
@@ -174,6 +198,10 @@ main {
   background: #eee;
 }
 
+.quantity button:hover {
+  background: #ddd;
+}
+
 .cart-bottom {
   margin-top: 25px;
 }
@@ -190,6 +218,10 @@ main {
   padding: 15px;
 }
 
+/* =========================================
+   OVERLAY
+========================================= */
+
 .overlay {
   position: fixed;
   inset: 0;
@@ -198,6 +230,10 @@ main {
   justify-content: flex-end;
   z-index: 10;
 }
+
+/* =========================================
+   CHAT WINDOW
+========================================= */
 
 .chat-window {
   width: 430px;
@@ -212,6 +248,7 @@ main {
   border-bottom: 1px solid #eee;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 .chat-header strong {
@@ -225,7 +262,14 @@ main {
 
 .chat-header button {
   background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+/* =========================================
+   MESSAGES
+========================================= */
 
 .messages {
   flex: 1;
@@ -251,6 +295,10 @@ main {
   margin-left: auto;
 }
 
+/* =========================================
+   CHAT INPUT
+========================================= */
+
 .chat-input {
   padding: 18px;
   border-top: 1px solid #eee;
@@ -264,6 +312,11 @@ main {
   border: 1px solid #ddd;
   border-radius: 9px;
   outline: none;
+  font-size: 14px;
+}
+
+.chat-input input:focus {
+  border-color: #999;
 }
 
 .chat-input button {
@@ -271,7 +324,19 @@ main {
   border-radius: 9px;
   background: #111;
   color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.chat-input button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================================
+   PAYMENT
+========================================= */
 
 .payment-area {
   padding: 20px;
@@ -281,11 +346,28 @@ main {
   gap: 13px;
 }
 
-.accepted {
-  font-weight: 600;
+.payment-area strong {
+  font-size: 20px;
 }
 
+.payment-area p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.accepted {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* =========================================
+   PAYMENT BUTTON
+========================================= */
+
 .payment-button {
+  width: 100%;
   padding: 14px;
   background: #111;
   color: white;
@@ -294,7 +376,92 @@ main {
   justify-content: center;
   gap: 8px;
   align-items: center;
+  font-size: 15px;
+  font-weight: 600;
 }
+
+.payment-button:hover {
+  opacity: 0.9;
+}
+
+.payment-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* =========================================
+   MERCHANT DASHBOARD BUTTON
+========================================= */
+
+.dashboard-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px;
+  color: #171717;
+}
+
+.dashboard-button:hover {
+  opacity: 0.65;
+}
+
+/* =========================================
+   DASHBOARD WINDOW
+========================================= */
+
+.dashboard-window {
+  width: 700px;
+  max-width: 90%;
+}
+
+/* =========================================
+   DASHBOARD CONTENT
+========================================= */
+
+.dashboard-content {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+/* =========================================
+   DASHBOARD CARDS
+========================================= */
+
+.dashboard-card {
+  padding: 22px;
+  border-radius: 14px;
+  background: #f5f5f3;
+  border: 1px solid #e7e7e5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: 0.2s;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  border-color: #d5d5d5;
+}
+
+.dashboard-card span {
+  font-size: 14px;
+  opacity: 0.65;
+}
+
+.dashboard-card strong {
+  font-size: 25px;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
 
 @media (max-width: 800px) {
 
@@ -308,5 +475,49 @@ main {
 
   .chat-window {
     width: 100%;
+  }
+
+  .dashboard-window {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .dashboard-content {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-button span {
+    display: none;
+  }
+}
+
+@media (max-width: 500px) {
+
+  .header {
+    padding: 0 5%;
+  }
+
+  main {
+    padding: 40px 18px;
+  }
+
+  .hero h1 {
+    font-size: 34px;
+  }
+
+  .hero p {
+    font-size: 16px;
+  }
+
+  .cart-section {
+    padding: 20px;
+  }
+
+  .dashboard-content {
+    padding: 18px;
+  }
+
+  .dashboard-card {
+    padding: 18px;
   }
 }

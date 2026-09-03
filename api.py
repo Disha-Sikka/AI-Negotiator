@@ -1,16 +1,37 @@
 import re
+import os
+import hmac
+import hashlib
+
+import razorpay
+
+from dotenv import load_dotenv
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from src.data_loader import load_products
-from src.llm_agent import extract_negotiation_request
+from src.llm_agent import (
+    extract_negotiation_request,
+    NegotiationRequest,
+    NegotiationItem
+)
 from src.cart_builder import build_cart
 from src.negotiation_session import (
     NegotiationSession,
     MAX_ROUNDS
 )
+
+
+# ============================================================
+# Environment
+# ============================================================
+
+load_dotenv()
+
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 
 
 # ============================================================
@@ -29,7 +50,10 @@ def extract_price_locally(message):
         I can pay ₹4,500
     """
 
-    pattern = r"(?:₹|rs\.?|inr)?\s*([0-9][0-9,]*(?:\.[0-9]+)?)"
+    pattern = (
+        r"(?:₹|rs\.?|inr)?\s*"
+        r"([0-9][0-9,]*(?:\.[0-9]+)?)"
+    )
 
     match = re.search(
         pattern,
@@ -138,6 +162,88 @@ def is_general_acceptance(message):
 
 
 # ============================================================
+# Local Cart Parser
+# ============================================================
+
+def build_local_negotiation_request(message, products):
+    """
+    Try to understand simple cart messages locally.
+
+    This avoids Gemini for normal frontend cart requests.
+
+    Example:
+        I want to buy 1 Bluetooth Speaker,
+        2 USB-C Cable, 1 Laptop Stand
+    """
+
+    text = message.lower()
+
+    items = []
+
+    # Sort longest product names first
+    # so more specific names are matched first.
+    product_rows = list(products.iterrows())
+
+    product_rows.sort(
+        key=lambda x: len(
+            str(x[1]["product_name"])
+        ),
+        reverse=True
+    )
+
+    for _, product in product_rows:
+
+        product_name = str(
+            product["product_name"]
+        )
+
+        product_lower = product_name.lower()
+
+        if product_lower not in text:
+            continue
+
+        # Look for quantity immediately before
+        # the product name.
+        escaped_name = re.escape(
+            product_lower
+        )
+
+        quantity_pattern = (
+            r"(\d+)\s+"
+            + escaped_name
+        )
+
+        quantity_match = re.search(
+            quantity_pattern,
+            text
+        )
+
+        if quantity_match:
+            quantity = int(
+                quantity_match.group(1)
+            )
+        else:
+            quantity = 1
+
+        items.append(
+            NegotiationItem(
+                item_name=product_name,
+                quantity=quantity
+            )
+        )
+
+    if not items:
+        return None
+
+    return NegotiationRequest(
+        intent="NEGOTIATE",
+        requested_price=None,
+        requested_discount=None,
+        items=items
+    )
+
+
+# ============================================================
 # FastAPI App
 # ============================================================
 
@@ -147,6 +253,10 @@ app = FastAPI(
     version="1.0"
 )
 
+
+# ============================================================
+# CORS
+# ============================================================
 
 app.add_middleware(
     CORSMiddleware,
@@ -160,8 +270,27 @@ app.add_middleware(
 )
 
 
-# Load products once
+# ============================================================
+# Load Products
+# ============================================================
+
 products = load_products()
+
+
+# ============================================================
+# Razorpay Client
+# ============================================================
+
+razorpay_client = None
+
+if RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET:
+
+    razorpay_client = razorpay.Client(
+        auth=(
+            RAZORPAY_KEY_ID,
+            RAZORPAY_KEY_SECRET
+        )
+    )
 
 
 # ============================================================
@@ -175,6 +304,17 @@ class StartNegotiationRequest(BaseModel):
 class ContinueNegotiationRequest(BaseModel):
     session_id: str
     message: str
+
+
+class CreatePaymentRequest(BaseModel):
+    session_id: str
+
+
+class VerifyPaymentRequest(BaseModel):
+    session_id: str
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
 
 
 # ============================================================
@@ -207,22 +347,62 @@ def start_negotiation(
 ):
 
     # --------------------------------------------------------
-    # 1. Extract customer's request using Gemini
+    # 1. Try local extraction first
     # --------------------------------------------------------
 
-    negotiation_request = extract_negotiation_request(
-        request.message
+    negotiation_request = (
+        build_local_negotiation_request(
+            request.message,
+            products
+        )
     )
 
 
     # --------------------------------------------------------
-    # 2. Build cart
+    # 2. If local parsing fails, use Gemini
     # --------------------------------------------------------
 
-    cart = build_cart(
-        negotiation_request,
-        products
-    )
+    if negotiation_request is None:
+
+        try:
+
+            negotiation_request = (
+                extract_negotiation_request(
+                    request.message
+                )
+            )
+
+        except Exception as e:
+
+            return {
+                "success": False,
+                "message": (
+                    "I couldn't understand the "
+                    "products in your request. "
+                    f"AI service error: {str(e)}"
+                )
+            }
+
+
+    # --------------------------------------------------------
+    # 3. Build cart
+    # --------------------------------------------------------
+
+    try:
+
+        cart = build_cart(
+            negotiation_request,
+            products
+        )
+
+    except Exception as e:
+
+        return {
+            "success": False,
+            "message": (
+                f"Unable to build cart: {str(e)}"
+            )
+        }
 
 
     if not cart:
@@ -237,32 +417,51 @@ def start_negotiation(
 
 
     # --------------------------------------------------------
-    # 3. Create negotiation session
+    # 4. Create negotiation session
     # --------------------------------------------------------
 
-    session = NegotiationSession(
-        cart,
-        products
+    try:
+
+        session = NegotiationSession(
+            cart,
+            products
+        )
+
+    except Exception as e:
+
+        return {
+            "success": False,
+            "message": (
+                f"Unable to create negotiation "
+                f"session: {str(e)}"
+            )
+        }
+
+
+    # --------------------------------------------------------
+    # 5. Generate session ID
+    # --------------------------------------------------------
+
+    session_id = str(
+        len(sessions) + 1
     )
-
-
-    # --------------------------------------------------------
-    # 4. Generate session ID
-    # --------------------------------------------------------
-
-    session_id = str(len(sessions) + 1)
 
     sessions[session_id] = session
 
 
     # --------------------------------------------------------
-    # 5. Generate first response
+    # 6. Generate first response
     # --------------------------------------------------------
 
-    if negotiation_request.requested_price is not None:
+    if (
+        negotiation_request.requested_price
+        is not None
+    ):
 
-        result = session.respond_to_customer_offer(
-            negotiation_request.requested_price
+        result = (
+            session.respond_to_customer_offer(
+                negotiation_request.requested_price
+            )
         )
 
 
@@ -273,6 +472,7 @@ def start_negotiation(
                 f"₹{result['offer']:.2f}."
             )
 
+
         elif result["decision"] == "COUNTER":
 
             message = (
@@ -282,6 +482,7 @@ def start_negotiation(
                 f"₹{result['offer']:.2f}."
             )
 
+
         elif result["decision"] == "FINAL_OFFER":
 
             message = (
@@ -289,6 +490,7 @@ def start_negotiation(
                 f"₹{result['offer']:.2f}. "
                 f"This is my final offer."
             )
+
 
         else:
 
@@ -307,17 +509,21 @@ def start_negotiation(
 
         if session.quantity_opportunity is not None:
 
-            opportunity = session.quantity_opportunity
+            opportunity = (
+                session.quantity_opportunity
+            )
 
             message = (
-                f"If you take {opportunity['quantity']}, "
+                f"If you take "
+                f"{opportunity['quantity']}, "
                 f"I can offer them at "
                 f"₹{opportunity['unit_price']:.2f} each. "
                 f"Your total would be "
                 f"₹{opportunity['total_price']:.2f}, "
                 f"saving you "
                 f"₹{opportunity['total_saving']:.2f}. "
-                f"Would you like to increase the quantity?"
+                f"Would you like to increase "
+                f"the quantity?"
             )
 
         else:
@@ -330,7 +536,7 @@ def start_negotiation(
 
 
     # --------------------------------------------------------
-    # 6. Return response
+    # 7. Return response
     # --------------------------------------------------------
 
     return {
@@ -347,11 +553,18 @@ def start_negotiation(
             session.quantity_opportunity,
 
         "cart": [
+
             {
-                "product_name": item["product_name"],
-                "quantity": item["quantity"],
-                "unit_price": item["unit_price"]
+                "product_name":
+                    item["product_name"],
+
+                "quantity":
+                    item["quantity"],
+
+                "unit_price":
+                    item["unit_price"]
             }
+
             for item in cart
         ]
     }
@@ -379,7 +592,8 @@ def continue_negotiation(
 
         return {
             "success": False,
-            "message": "Negotiation session not found."
+            "message":
+                "Negotiation session not found."
         }
 
 
@@ -395,13 +609,16 @@ def continue_negotiation(
         and is_quantity_acceptance(message)
     ):
 
-        result = session.accept_quantity_offer()
+        result = (
+            session.accept_quantity_offer()
+        )
 
         return {
 
             "success": True,
 
-            "decision": result["decision"],
+            "decision":
+                result["decision"],
 
             "message": (
                 f"Deal! I'll accept "
@@ -410,17 +627,28 @@ def continue_negotiation(
                 f"(₹{result['offer'] / result['quantity']:.2f} each)."
             ),
 
-            "offer": result["offer"],
+            "offer":
+                result["offer"],
 
-            "quantity": result["quantity"],
+            "quantity":
+                result["quantity"],
 
             "cart": [
+
                 {
-                    "product_id": item["product_id"],
-                    "product_name": item["product_name"],
-                    "quantity": item["quantity"],
-                    "unit_price": item["unit_price"]
+                    "product_id":
+                        item["product_id"],
+
+                    "product_name":
+                        item["product_name"],
+
+                    "quantity":
+                        item["quantity"],
+
+                    "unit_price":
+                        item["unit_price"]
                 }
+
                 for item in session.cart
             ]
         }
@@ -441,7 +669,8 @@ def continue_negotiation(
 
             "success": True,
 
-            "decision": "PRICE_NEGOTIATION",
+            "decision":
+                "PRICE_NEGOTIATION",
 
             "message": (
                 "No problem. We can work with "
@@ -449,7 +678,8 @@ def continue_negotiation(
                 "What price did you have in mind?"
             ),
 
-            "offer": session.current_offer
+            "offer":
+                session.current_offer
         }
 
 
@@ -459,20 +689,24 @@ def continue_negotiation(
 
     if is_general_acceptance(message):
 
-        result = session.accept_current_offer()
+        result = (
+            session.accept_current_offer()
+        )
 
         return {
 
             "success": True,
 
-            "decision": "ACCEPT",
+            "decision":
+                "ACCEPT",
 
             "message": (
                 f"Deal! I'll accept "
                 f"₹{result['offer']:.2f}."
             ),
 
-            "offer": result["offer"]
+            "offer":
+                result["offer"]
         }
 
 
@@ -480,17 +714,22 @@ def continue_negotiation(
     # 5. LOCAL PRICE EXTRACTION
     # ========================================================
 
-    requested_price = extract_price_locally(
-        message
+    requested_price = (
+        extract_price_locally(message)
     )
 
 
+    # --------------------------------------------------------
     # If a clear price is present,
     # DO NOT call Gemini.
+    # --------------------------------------------------------
+
     if requested_price is not None:
 
-        result = session.respond_to_customer_offer(
-            requested_price
+        result = (
+            session.respond_to_customer_offer(
+                requested_price
+            )
         )
 
 
@@ -513,7 +752,8 @@ def continue_negotiation(
         elif result["decision"] == "COUNTER":
 
             remaining = (
-                MAX_ROUNDS - session.round_number
+                MAX_ROUNDS -
+                session.round_number
             )
 
             response_message = (
@@ -536,7 +776,8 @@ def continue_negotiation(
         elif result["decision"] == "BELOW_FLOOR":
 
             remaining = (
-                MAX_ROUNDS - session.round_number
+                MAX_ROUNDS -
+                session.round_number
             )
 
             response_message = (
@@ -570,18 +811,24 @@ def continue_negotiation(
 
             "success": True,
 
-            "decision": result["decision"],
+            "decision":
+                result["decision"],
 
-            "message": response_message,
+            "message":
+                response_message,
 
-            "offer": result["offer"],
+            "offer":
+                result["offer"],
 
-            "round": session.round_number,
+            "round":
+                session.round_number,
 
-            "remaining_rounds": max(
-                0,
-                MAX_ROUNDS - session.round_number
-            )
+            "remaining_rounds":
+                max(
+                    0,
+                    MAX_ROUNDS -
+                    session.round_number
+                )
         }
 
 
@@ -589,31 +836,60 @@ def continue_negotiation(
     # 6. ONLY NOW USE GEMINI
     # ========================================================
 
-    negotiation_request = (
-        extract_negotiation_request(message)
-    )
+    try:
+
+        negotiation_request = (
+            extract_negotiation_request(
+                message
+            )
+        )
+
+    except Exception as e:
+
+        return {
+
+            "success": False,
+
+            "decision":
+                "ERROR",
+
+            "message": (
+                "I couldn't understand that. "
+                "Please enter a price such as "
+                "₹4500."
+            ),
+
+            "error": str(e)
+        }
 
 
     # --------------------------------------------------------
     # Gemini detected ACCEPT
     # --------------------------------------------------------
 
-    if negotiation_request.intent == "ACCEPT":
+    if (
+        negotiation_request.intent
+        == "ACCEPT"
+    ):
 
-        result = session.accept_current_offer()
+        result = (
+            session.accept_current_offer()
+        )
 
         return {
 
             "success": True,
 
-            "decision": "ACCEPT",
+            "decision":
+                "ACCEPT",
 
             "message": (
                 f"Deal! I'll accept "
                 f"₹{result['offer']:.2f}."
             ),
 
-            "offer": result["offer"]
+            "offer":
+                result["offer"]
         }
 
 
@@ -621,10 +897,15 @@ def continue_negotiation(
     # Gemini detected a requested price
     # --------------------------------------------------------
 
-    if negotiation_request.requested_price is not None:
+    if (
+        negotiation_request.requested_price
+        is not None
+    ):
 
-        result = session.respond_to_customer_offer(
-            negotiation_request.requested_price
+        result = (
+            session.respond_to_customer_offer(
+                negotiation_request.requested_price
+            )
         )
 
 
@@ -666,18 +947,24 @@ def continue_negotiation(
 
             "success": True,
 
-            "decision": result["decision"],
+            "decision":
+                result["decision"],
 
-            "message": response_message,
+            "message":
+                response_message,
 
-            "offer": result["offer"],
+            "offer":
+                result["offer"],
 
-            "round": session.round_number,
+            "round":
+                session.round_number,
 
-            "remaining_rounds": max(
-                0,
-                MAX_ROUNDS - session.round_number
-            )
+            "remaining_rounds":
+                max(
+                    0,
+                    MAX_ROUNDS -
+                    session.round_number
+                )
         }
 
 
@@ -689,11 +976,472 @@ def continue_negotiation(
 
         "success": True,
 
-        "decision": "NEED_PRICE",
+        "decision":
+            "NEED_PRICE",
 
-        "message": (
-            "What price did you have in mind?"
-        ),
+        "message":
+            "What price did you have in mind?",
 
-        "offer": session.current_offer
+        "offer":
+            session.current_offer
+    }
+
+
+# ============================================================
+# Razorpay Payment
+# ============================================================
+
+@app.post("/payment/create-order")
+def create_payment_order(
+    request: CreatePaymentRequest
+):
+
+    # --------------------------------------------------------
+    # Check Razorpay configuration
+    # --------------------------------------------------------
+
+    if razorpay_client is None:
+
+        return {
+
+            "success": False,
+
+            "message": (
+                "Razorpay is not configured. "
+                "Please add RAZORPAY_KEY_ID and "
+                "RAZORPAY_KEY_SECRET to your .env file."
+            )
+        }
+
+
+    # --------------------------------------------------------
+    # Find session
+    # --------------------------------------------------------
+
+    session = sessions.get(
+        request.session_id
+    )
+
+
+    if session is None:
+
+        return {
+
+            "success": False,
+
+            "message":
+                "Negotiation session not found."
+        }
+
+
+    # --------------------------------------------------------
+    # Payment only after acceptance
+    # --------------------------------------------------------
+
+    if not session.accepted:
+
+        return {
+
+            "success": False,
+
+            "message":
+                "Please accept the negotiation deal first."
+        }
+
+
+    # --------------------------------------------------------
+    # Amount is stored in rupees.
+    # Razorpay expects paise.
+    # --------------------------------------------------------
+
+    amount = int(
+        round(
+            session.current_offer * 100
+        )
+    )
+
+
+    if amount <= 0:
+
+        return {
+
+            "success": False,
+
+            "message":
+                "Invalid payment amount."
+        }
+
+
+    try:
+
+        order = (
+            razorpay_client.order.create(
+                data={
+
+                    "amount":
+                        amount,
+
+                    "currency":
+                        "INR",
+
+                    "receipt":
+                        f"negotiation_{request.session_id}",
+
+                    "notes": {
+
+                        "session_id":
+                            request.session_id,
+
+                        "product":
+                            "AI Payment Negotiator"
+                    }
+                }
+            )
+        )
+
+
+        # Save Razorpay order information
+        session.razorpay_order_id = (
+            order["id"]
+        )
+
+        session.payment_status = (
+            "created"
+        )
+
+
+        return {
+
+            "success": True,
+
+            "order_id":
+                order["id"],
+
+            "amount":
+                amount,
+
+            "currency":
+                "INR",
+
+            "key_id":
+                RAZORPAY_KEY_ID
+        }
+
+
+    except Exception as e:
+
+        return {
+
+            "success": False,
+
+            "message": (
+                "Unable to create payment order: "
+                f"{str(e)}"
+            )
+        }
+
+
+# ============================================================
+# Razorpay Payment Verification
+# ============================================================
+
+@app.post("/payment/verify")
+def verify_payment(
+    request: VerifyPaymentRequest
+):
+
+    # --------------------------------------------------------
+    # Check Razorpay configuration
+    # --------------------------------------------------------
+
+    if (
+        not RAZORPAY_KEY_SECRET
+    ):
+
+        return {
+
+            "success": False,
+
+            "message":
+                "Razorpay secret is not configured."
+        }
+
+
+    # --------------------------------------------------------
+    # Find session
+    # --------------------------------------------------------
+
+    session = sessions.get(
+        request.session_id
+    )
+
+
+    if session is None:
+
+        return {
+
+            "success": False,
+
+            "message":
+                "Negotiation session not found."
+        }
+
+
+    try:
+
+        # ----------------------------------------------------
+        # Verify Razorpay signature
+        # ----------------------------------------------------
+
+        generated_signature = hmac.new(
+
+            RAZORPAY_KEY_SECRET.encode(),
+
+            (
+                request.razorpay_order_id
+                + "|"
+                + request.razorpay_payment_id
+            ).encode(),
+
+            hashlib.sha256
+        ).hexdigest()
+
+
+        if not hmac.compare_digest(
+            generated_signature,
+            request.razorpay_signature
+        ):
+
+            return {
+
+                "success": False,
+
+                "message":
+                    "Payment verification failed."
+            }
+
+
+        # ----------------------------------------------------
+        # Payment verified
+        # ----------------------------------------------------
+
+        session.payment_status = "paid"
+
+        session.razorpay_payment_id = (
+            request.razorpay_payment_id
+        )
+
+        session.razorpay_order_id = (
+            request.razorpay_order_id
+        )
+
+
+        return {
+
+            "success": True,
+
+            "message":
+                "Payment verified successfully.",
+
+            "payment_id":
+                request.razorpay_payment_id,
+
+            "order_id":
+                request.razorpay_order_id
+        }
+
+
+    except Exception as e:
+
+        return {
+
+            "success": False,
+
+            "message": (
+                "Payment verification failed: "
+                f"{str(e)}"
+            )
+        }
+
+
+# ============================================================
+# Merchant Dashboard
+# ============================================================
+
+@app.get("/merchant/dashboard")
+def merchant_dashboard():
+
+    # --------------------------------------------------------
+    # Total negotiations
+    # --------------------------------------------------------
+
+    total_negotiations = len(
+        sessions
+    )
+
+
+    # --------------------------------------------------------
+    # Accepted negotiations
+    # --------------------------------------------------------
+
+    accepted_sessions = [
+
+        session
+
+        for session in sessions.values()
+
+        if getattr(
+            session,
+            "accepted",
+            False
+        )
+    ]
+
+
+    # --------------------------------------------------------
+    # Paid negotiations
+    # --------------------------------------------------------
+
+    paid_sessions = [
+
+        session
+
+        for session in accepted_sessions
+
+        if getattr(
+            session,
+            "payment_status",
+            ""
+        ) == "paid"
+    ]
+
+
+    # --------------------------------------------------------
+    # Revenue
+    # --------------------------------------------------------
+
+    total_revenue = sum(
+
+        session.current_offer
+
+        for session in paid_sessions
+    )
+
+
+    # --------------------------------------------------------
+    # Customer savings
+    # --------------------------------------------------------
+
+    total_savings = 0
+
+    for session in accepted_sessions:
+
+        try:
+
+            original = (
+                session.cart_summary[
+                    "total_original_price"
+                ]
+            )
+
+            savings = (
+                original -
+                session.current_offer
+            )
+
+            total_savings += savings
+
+        except Exception:
+
+            pass
+
+
+    # --------------------------------------------------------
+    # Average discount
+    # --------------------------------------------------------
+
+    average_discount = 0
+
+    if accepted_sessions:
+
+        discounts = []
+
+
+        for session in accepted_sessions:
+
+            try:
+
+                original = (
+                    session.cart_summary[
+                        "total_original_price"
+                    ]
+                )
+
+
+                if original > 0:
+
+                    discount = (
+
+                        (
+                            original -
+                            session.current_offer
+                        )
+                        /
+                        original
+
+                    ) * 100
+
+
+                    discounts.append(
+                        discount
+                    )
+
+            except Exception:
+
+                continue
+
+
+        if discounts:
+
+            average_discount = (
+                sum(discounts)
+                /
+                len(discounts)
+            )
+
+
+    # --------------------------------------------------------
+    # Return dashboard data
+    # --------------------------------------------------------
+
+    return {
+
+        "success": True,
+
+        "total_negotiations":
+            total_negotiations,
+
+        "accepted_deals":
+            len(accepted_sessions),
+
+        "paid_orders":
+            len(paid_sessions),
+
+        "revenue":
+            round(
+                total_revenue,
+                2
+            ),
+
+        "customer_savings":
+            round(
+                total_savings,
+                2
+            ),
+
+        "average_discount":
+            round(
+                average_discount,
+                2
+            )
     }
