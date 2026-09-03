@@ -1,0 +1,312 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f7f7f5;
+  color: #171717;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+}
+
+.header {
+  height: 70px;
+  padding: 0 7%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.cart-icon {
+  position: relative;
+}
+
+.cart-icon span {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #111;
+  color: white;
+  border-radius: 50%;
+  font-size: 11px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+main {
+  max-width: 1150px;
+  margin: auto;
+  padding: 60px 25px;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 65px;
+}
+
+.hero h1 {
+  font-size: 54px;
+  line-height: 1.05;
+  margin-bottom: 20px;
+}
+
+.hero h1 span {
+  color: #555;
+}
+
+.hero p {
+  max-width: 600px;
+  margin: auto;
+  color: #666;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.products h2 {
+  font-size: 28px;
+  margin-bottom: 25px;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, 1fr);
+  gap: 20px;
+}
+
+.product-card {
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+  padding: 20px;
+  transition: 0.2s;
+}
+
+.product-card:hover {
+  transform: translateY(-3px);
+}
+
+.product-image {
+  height: 170px;
+  border-radius: 12px;
+  background: #eeeeec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 55px;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.product-card h3 {
+  font-size: 17px;
+  min-height: 42px;
+}
+
+.price {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.product-card button,
+.negotiate-button {
+  width: 100%;
+  padding: 13px;
+  border-radius: 9px;
+  background: #111;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.cart-section {
+  margin-top: 60px;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 18px;
+  padding: 28px;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.cart-item p {
+  margin-bottom: 0;
+  color: #666;
+}
+
+.quantity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.quantity button {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: #eee;
+}
+
+.cart-bottom {
+  margin-top: 25px;
+}
+
+.cart-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.negotiate-button {
+  font-size: 16px;
+  padding: 15px;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 10;
+}
+
+.chat-window {
+  width: 430px;
+  height: 100%;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header {
+  padding: 22px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+}
+
+.chat-header strong {
+  display: block;
+  font-size: 19px;
+}
+
+.chat-header small {
+  color: #777;
+}
+
+.chat-header button {
+  background: none;
+}
+
+.messages {
+  flex: 1;
+  padding: 25px;
+  overflow-y: auto;
+}
+
+.message {
+  max-width: 82%;
+  padding: 13px 16px;
+  border-radius: 15px;
+  margin-bottom: 13px;
+  line-height: 1.45;
+}
+
+.message.ai {
+  background: #f0f0ee;
+}
+
+.message.user {
+  background: #111;
+  color: white;
+  margin-left: auto;
+}
+
+.chat-input {
+  padding: 18px;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 13px;
+  border: 1px solid #ddd;
+  border-radius: 9px;
+  outline: none;
+}
+
+.chat-input button {
+  width: 45px;
+  border-radius: 9px;
+  background: #111;
+  color: white;
+}
+
+.payment-area {
+  padding: 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.accepted {
+  font-weight: 600;
+}
+
+.payment-button {
+  padding: 14px;
+  background: #111;
+  color: white;
+  border-radius: 9px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (max-width: 800px) {
+
+  .product-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero h1 {
+    font-size: 40px;
+  }
+
+  .chat-window {
+    width: 100%;
+  }
+}

@@ -74,6 +74,7 @@ class NegotiationSession:
 
         self.round_number = 0
         self.history = []
+        self.accepted = False
 
         self.negotiation_mode = (
             self.determine_negotiation_mode()
@@ -113,11 +114,11 @@ class NegotiationSession:
             self.cart_summary,
             requested_discount
         )
-
+    MAX_ROUNDS = 5
     def respond_to_customer_offer(
-        self,
-        customer_offer
-    ):
+    self,
+    customer_offer
+):
 
         self.round_number += 1
 
@@ -143,6 +144,9 @@ class NegotiationSession:
             or customer_offer == self.floor_price
         ):
 
+            self.current_offer = customer_offer
+            self.accepted = True
+
             self.history.append({
                 "round": self.round_number,
                 "customer_offer": customer_offer,
@@ -150,15 +154,10 @@ class NegotiationSession:
                 "decision": "ACCEPT"
             })
 
-            self.current_offer = customer_offer
-
             return {
                 "decision": "ACCEPT",
                 "offer": customer_offer
             }
-
-        # Customer offer is between
-        # floor and current offer
 
         concession_rates = {
             1: 0.20,
@@ -173,9 +172,6 @@ class NegotiationSession:
             0.40
         )
 
-        # More negotiable carts receive
-        # slightly larger concessions.
-
         negotiability_bonus = (
             self.negotiability_score / 100
         ) * 0.10
@@ -184,9 +180,6 @@ class NegotiationSession:
             base_rate
             + negotiability_bonus
         )
-
-        # Never concede more than 50%
-        # of the current gap.
 
         concession_rate = min(
             concession_rate,
@@ -208,7 +201,6 @@ class NegotiationSession:
         )
 
         # HARD MERCHANT FLOOR
-
         counter_offer = max(
             counter_offer,
             self.floor_price
@@ -221,6 +213,21 @@ class NegotiationSession:
 
         self.current_offer = counter_offer
 
+        # 5th response is the FINAL offer
+        if self.round_number >= MAX_ROUNDS:
+
+            self.history.append({
+                "round": self.round_number,
+                "customer_offer": customer_offer,
+                "agent_offer": counter_offer,
+                "decision": "FINAL_OFFER"
+            })
+
+            return {
+                "decision": "FINAL_OFFER",
+                "offer": counter_offer
+            }
+
         self.history.append({
             "round": self.round_number,
             "customer_offer": customer_offer,
@@ -232,7 +239,6 @@ class NegotiationSession:
             "decision": "COUNTER",
             "offer": counter_offer
         }
-
     def get_history(self):
         return self.history
 

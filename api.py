@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from src.data_loader import load_products
@@ -13,6 +14,16 @@ app = FastAPI(
     version="1.0"
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 products = load_products()
 
@@ -111,6 +122,13 @@ def start_negotiation(
                 f"₹{negotiation_request.requested_price:.2f}, "
                 f"but I can offer "
                 f"₹{result['offer']:.2f}."
+            )
+
+        elif result["decision"] == "FINAL_OFFER":
+            message = (
+                f"This is the best price I can offer: "
+                f"₹{result['offer']:.2f}. "
+                f"This is my final offer."
             )
 
         else:
