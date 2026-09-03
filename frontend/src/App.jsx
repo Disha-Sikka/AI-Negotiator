@@ -202,7 +202,30 @@ function App() {
       );
 
       const data = await response.json();
+      if (data.decision === "QUANTITY_ACCEPTED") {
+    if (data.cart) {
+        setCart(prevCart =>
+            prevCart.map(item => {
+                const updatedItem = data.cart.find(
+                    cartItem =>
+                        cartItem.product_name === item.name
+                );
 
+                if (updatedItem) {
+                    return {
+                        ...item,
+                        quantity: updatedItem.quantity
+                    };
+                }
+
+                return item;
+            })
+        );
+    }
+
+    setFinalPrice(data.offer);
+    setAccepted(true);
+}
       setMessages(current => [
         ...current,
         {

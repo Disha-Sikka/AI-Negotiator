@@ -6,6 +6,10 @@ from src.cart_engine import (
 )
 
 from src.negotiability import calculate_item_negotiability
+from src.quantity_offer import find_quantity_opportunity
+
+
+MAX_ROUNDS = 5
 
 
 class NegotiationSession:
@@ -32,7 +36,7 @@ class NegotiationSession:
             self.cart_summary["total_floor_price"]
         )
 
-        # Calculate item-level negotiability
+        # Item-level negotiability
         self.item_negotiability = []
 
         for item in self.cart_summary["cart_details"]:
@@ -51,17 +55,13 @@ class NegotiationSession:
                 "score": score
             })
 
-        # Calculate overall cart negotiability
+        # Overall cart negotiability
         self.negotiability_score = (
             self.calculate_cart_negotiability()
         )
 
-        # Convert negotiability into initial
-        # negotiation strength.
-        #
-        # Score 0   -> 20%
+        # Score 0 -> 20%
         # Score 100 -> 40%
-
         self.negotiation_strength = (
             0.20
             + (self.negotiability_score / 100) * 0.20
@@ -76,6 +76,11 @@ class NegotiationSession:
         self.history = []
         self.accepted = False
 
+        # Quantity upsell opportunity
+        self.quantity_opportunity = (
+            self.find_quantity_opportunity()
+        )
+
         self.negotiation_mode = (
             self.determine_negotiation_mode()
         )
@@ -88,7 +93,6 @@ class NegotiationSession:
         for item in self.cart_summary["cart_details"]:
 
             score = item["negotiability_score"]
-
             value = item["original_value"]
 
             total_value += value
@@ -105,6 +109,23 @@ class NegotiationSession:
             2
         )
 
+    def find_quantity_opportunity(self):
+
+        # Only suggest quantity increase for a
+        # single-product cart for now.
+        if len(self.cart_summary["cart_details"]) != 1:
+            return None
+
+        item = self.cart_summary["cart_details"][0]
+
+        product = item["product"]
+        current_quantity = item["quantity"]
+
+        return find_quantity_opportunity(
+            product,
+            current_quantity
+        )
+
     def generate_item_discount_allocation(
         self,
         requested_discount
@@ -114,35 +135,21 @@ class NegotiationSession:
             self.cart_summary,
             requested_discount
         )
-    MAX_ROUNDS = 5
+
     def respond_to_customer_offer(
     self,
     customer_offer
 ):
-
-        self.round_number += 1
-
-        # Customer is below merchant floor
-        if customer_offer < self.floor_price:
-
-            self.history.append({
-                "round": self.round_number,
-                "customer_offer": customer_offer,
-                "agent_offer": self.current_offer,
-                "decision": "BELOW_FLOOR"
-            })
-
+        if self.round_number >= MAX_ROUNDS:
             return {
-                "decision": "BELOW_FLOOR",
+                "decision": "FINAL_OFFER",
                 "offer": self.current_offer
             }
+        # Every customer price attempt counts as one round
+        self.round_number += 1
 
-        # Customer meets current offer
-        # OR reaches merchant floor
-        if (
-            customer_offer >= self.current_offer
-            or customer_offer == self.floor_price
-        ):
+        # Customer accepts the current AI offer
+        if customer_offer >= self.current_offer:
 
             self.current_offer = customer_offer
             self.accepted = True
@@ -159,6 +166,38 @@ class NegotiationSession:
                 "offer": customer_offer
             }
 
+        # Customer is below merchant floor
+        if customer_offer < self.floor_price:
+
+            # If this was the 5th attempt,
+            # stop negotiation.
+            if self.round_number >= MAX_ROUNDS:
+
+                self.history.append({
+                    "round": self.round_number,
+                    "customer_offer": customer_offer,
+                    "agent_offer": self.current_offer,
+                    "decision": "FINAL_OFFER"
+                })
+
+                return {
+                    "decision": "FINAL_OFFER",
+                    "offer": self.current_offer
+                }
+
+            self.history.append({
+                "round": self.round_number,
+                "customer_offer": customer_offer,
+                "agent_offer": self.current_offer,
+                "decision": "BELOW_FLOOR"
+            })
+
+            return {
+                "decision": "BELOW_FLOOR",
+                "offer": self.current_offer
+            }
+
+        # Concession rates
         concession_rates = {
             1: 0.20,
             2: 0.25,
@@ -213,7 +252,7 @@ class NegotiationSession:
 
         self.current_offer = counter_offer
 
-        # 5th response is the FINAL offer
+        # Fifth attempt = final offer
         if self.round_number >= MAX_ROUNDS:
 
             self.history.append({
@@ -239,6 +278,74 @@ class NegotiationSession:
             "decision": "COUNTER",
             "offer": counter_offer
         }
+
+    def accept_current_offer(self):
+
+        self.accepted = True
+
+        self.history.append({
+            "round": self.round_number,
+            "customer_offer": self.current_offer,
+            "agent_offer": self.current_offer,
+            "decision": "ACCEPT"
+        })
+
+        return {
+            "decision": "ACCEPT",
+            "offer": self.current_offer
+        }
+    def accept_quantity_offer(self):
+
+        if self.quantity_opportunity is None:
+            return {
+                "decision": "NO_QUANTITY_OFFER"
+            }
+
+        opportunity = self.quantity_opportunity
+
+        new_quantity = opportunity["quantity"]
+        final_price = opportunity["total_price"]
+
+        # Update the actual cart quantity
+        if len(self.cart) == 1:
+
+            self.cart[0]["quantity"] = new_quantity
+
+        # Recalculate the cart
+        self.cart_summary = calculate_cart(
+            self.cart,
+            self.products
+        )
+
+        self.original_price = (
+            self.cart_summary["total_original_price"]
+        )
+
+        self.floor_price = (
+            self.cart_summary["total_floor_price"]
+        )
+
+        # Quantity deal becomes the current/final offer
+        self.current_offer = final_price
+
+        self.accepted = True
+
+        self.quantity_opportunity = None
+
+        self.history.append({
+            "round": self.round_number,
+            "customer_offer": final_price,
+            "agent_offer": final_price,
+            "decision": "QUANTITY_ACCEPTED",
+            "quantity": new_quantity
+        })
+
+        return {
+            "decision": "QUANTITY_ACCEPTED",
+            "offer": final_price,
+            "quantity": new_quantity
+        }
+
     def get_history(self):
         return self.history
 
