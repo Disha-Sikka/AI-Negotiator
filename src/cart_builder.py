@@ -17,7 +17,7 @@ def build_cart(request, products):
             cart.append({
                 "product_id": product["product_id"],
                 "product_name": product["product_name"],
-                "quantity": 1,
+                "quantity": item.quantity,
                 "unit_price": product["selling_price"]
             })
 

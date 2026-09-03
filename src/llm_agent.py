@@ -22,6 +22,7 @@ client = genai.Client(api_key=api_key)
 
 class NegotiationItem(BaseModel):
     item_name: str
+    quantity: int = 1
 
 
 class NegotiationRequest(BaseModel):
@@ -47,7 +48,38 @@ Extract:
 2. The total price they want, if mentioned.
 3. The discount they want, if mentioned.
 4. The products they mention.
+5. The quantity requested for each product.
 
+Quantity rules:
+
+- If the customer explicitly mentions a quantity, extract it.
+- If no quantity is mentioned, use quantity = 1.
+- Do not invent quantities.
+- Quantity must be a positive integer.
+
+Examples:
+Customer: "I'll take 5 USB-C cables for ₹3000."
+
+→ intent = NEGOTIATE
+→ requested_price = 3000
+→ items = [
+    {{
+        "item_name": "cable",
+        "quantity": 5
+    }}
+]
+Customer: "I'll take the speaker and 3 cables."
+
+→ items = [
+    {{
+        "item_name": "speaker",
+        "quantity": 1
+    }},
+    {{
+        "item_name": "cable",
+        "quantity": 3
+    }}
+]
 Intent rules:
 
 - NEGOTIATE:
