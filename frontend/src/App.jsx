@@ -584,51 +584,25 @@ function App() {
       ========================================== */}
 
       <header className="header">
+  <div className="logo">
+    <span className="logo-mark">N</span>
+    NegotiateAI
+  </div>
 
-        <div className="logo">
-          <MessageCircle size={26} />
+  <div className="header-actions">
+    <button
+      className="dashboard-button"
+      onClick={() => setShowDashboard(true)}
+    >
+      Merchant Dashboard
+    </button>
 
-          <span>
-            AI Negotiator
-          </span>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "18px"
-          }}
-        >
-
-          <button
-            className="dashboard-button"
-            onClick={openDashboard}
-          >
-            <BarChart3 size={18} />
-
-            <span>
-              Merchant Dashboard
-            </span>
-          </button>
-
-          <div className="cart-icon">
-
-            <ShoppingCart size={24} />
-
-            <span>
-              {cart.reduce(
-                (sum, item) =>
-                  sum + item.quantity,
-                0
-              )}
-            </span>
-
-          </div>
-
-        </div>
-
-      </header>
+    <button className="cart-icon">
+      🛒
+      <span>{cartCount}</span>
+    </button>
+  </div>
+</header>
 
 
       {/* ==========================================

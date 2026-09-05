@@ -1,0 +1,746 @@
+[
+  {
+    "id": "B01",
+    "name": "Basic single item: Premium Wireless Headphones",
+    "type": "basic",
+    "items": [
+      {
+        "item_name": "Premium Wireless Headphones",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "B02",
+    "name": "Basic single item: Bluetooth Speaker",
+    "type": "basic",
+    "items": [
+      {
+        "item_name": "Bluetooth Speaker",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "B03",
+    "name": "Basic single item: USB-C Cable",
+    "type": "basic",
+    "items": [
+      {
+        "item_name": "USB-C Cable",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "B04",
+    "name": "Basic single item: Mechanical Keyboard",
+    "type": "basic",
+    "items": [
+      {
+        "item_name": "Mechanical Keyboard",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "B05",
+    "name": "Basic single item: Wireless Mouse",
+    "type": "basic",
+    "items": [
+      {
+        "item_name": "Wireless Mouse",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "B06",
+    "name": "Basic single item: Webcam",
+    "type": "basic",
+    "items": [
+      {
+        "item_name": "Webcam",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "B07",
+    "name": "Basic single item: Laptop Stand",
+    "type": "basic",
+    "items": [
+      {
+        "item_name": "Laptop Stand",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "B08",
+    "name": "Basic single item: Power Bank",
+    "type": "basic",
+    "items": [
+      {
+        "item_name": "Power Bank",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "B09",
+    "name": "Basic single item: Monitor Light",
+    "type": "basic",
+    "items": [
+      {
+        "item_name": "Monitor Light",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "B10",
+    "name": "Basic single item: Premium Keyboard",
+    "type": "basic",
+    "items": [
+      {
+        "item_name": "Premium Keyboard",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "Q01",
+    "name": "Quantity safety: Premium Wireless Headphones",
+    "type": "quantity",
+    "items": [
+      {
+        "item_name": "Premium Wireless Headphones",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "Q02",
+    "name": "Quantity safety: Bluetooth Speaker",
+    "type": "quantity",
+    "items": [
+      {
+        "item_name": "Bluetooth Speaker",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "Q03",
+    "name": "Quantity safety: USB-C Cable",
+    "type": "quantity",
+    "items": [
+      {
+        "item_name": "USB-C Cable",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "Q04",
+    "name": "Quantity safety: Mechanical Keyboard",
+    "type": "quantity",
+    "items": [
+      {
+        "item_name": "Mechanical Keyboard",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "Q05",
+    "name": "Quantity safety: Wireless Mouse",
+    "type": "quantity",
+    "items": [
+      {
+        "item_name": "Wireless Mouse",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "Q06",
+    "name": "Quantity safety: Webcam",
+    "type": "quantity",
+    "items": [
+      {
+        "item_name": "Webcam",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "Q07",
+    "name": "Quantity safety: Laptop Stand",
+    "type": "quantity",
+    "items": [
+      {
+        "item_name": "Laptop Stand",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "Q08",
+    "name": "Quantity safety: Power Bank",
+    "type": "quantity",
+    "items": [
+      {
+        "item_name": "Power Bank",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "Q09",
+    "name": "Quantity safety: Monitor Light",
+    "type": "quantity",
+    "items": [
+      {
+        "item_name": "Monitor Light",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "Q10",
+    "name": "Quantity safety: Premium Keyboard",
+    "type": "quantity",
+    "items": [
+      {
+        "item_name": "Premium Keyboard",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "C01",
+    "name": "Multi-item cart #1",
+    "type": "cart",
+    "items": [
+      {
+        "item_name": "Bluetooth Speaker",
+        "quantity": 1
+      },
+      {
+        "item_name": "USB-C Cable",
+        "quantity": 2
+      }
+    ]
+  },
+  {
+    "id": "C02",
+    "name": "Multi-item cart #2",
+    "type": "cart",
+    "items": [
+      {
+        "item_name": "Bluetooth Speaker",
+        "quantity": 1
+      },
+      {
+        "item_name": "Laptop Stand",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "C03",
+    "name": "Multi-item cart #3",
+    "type": "cart",
+    "items": [
+      {
+        "item_name": "Mechanical Keyboard",
+        "quantity": 1
+      },
+      {
+        "item_name": "Wireless Mouse",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "C04",
+    "name": "Multi-item cart #4",
+    "type": "cart",
+    "items": [
+      {
+        "item_name": "Webcam",
+        "quantity": 1
+      },
+      {
+        "item_name": "Power Bank",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "C05",
+    "name": "Multi-item cart #5",
+    "type": "cart",
+    "items": [
+      {
+        "item_name": "Premium Wireless Headphones",
+        "quantity": 1
+      },
+      {
+        "item_name": "Monitor Light",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "C06",
+    "name": "Multi-item cart #6",
+    "type": "cart",
+    "items": [
+      {
+        "item_name": "Premium Keyboard",
+        "quantity": 1
+      },
+      {
+        "item_name": "USB-C Cable",
+        "quantity": 2
+      },
+      {
+        "item_name": "Wireless Mouse",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "C07",
+    "name": "Multi-item cart #7",
+    "type": "cart",
+    "items": [
+      {
+        "item_name": "Bluetooth Speaker",
+        "quantity": 1
+      },
+      {
+        "item_name": "USB-C Cable",
+        "quantity": 2
+      },
+      {
+        "item_name": "Laptop Stand",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "C08",
+    "name": "Multi-item cart #8",
+    "type": "cart",
+    "items": [
+      {
+        "item_name": "Mechanical Keyboard",
+        "quantity": 1
+      },
+      {
+        "item_name": "Webcam",
+        "quantity": 1
+      },
+      {
+        "item_name": "Power Bank",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "C09",
+    "name": "Multi-item cart #9",
+    "type": "cart",
+    "items": [
+      {
+        "item_name": "Premium Wireless Headphones",
+        "quantity": 1
+      },
+      {
+        "item_name": "Laptop Stand",
+        "quantity": 1
+      },
+      {
+        "item_name": "Monitor Light",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "C10",
+    "name": "Multi-item cart #10",
+    "type": "cart",
+    "items": [
+      {
+        "item_name": "Premium Keyboard",
+        "quantity": 1
+      },
+      {
+        "item_name": "Bluetooth Speaker",
+        "quantity": 1
+      },
+      {
+        "item_name": "USB-C Cable",
+        "quantity": 2
+      },
+      {
+        "item_name": "Laptop Stand",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "F01",
+    "name": "Floor protection: Premium Wireless Headphones",
+    "type": "floor",
+    "items": [
+      {
+        "item_name": "Premium Wireless Headphones",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "F02",
+    "name": "Floor protection: Bluetooth Speaker",
+    "type": "floor",
+    "items": [
+      {
+        "item_name": "Bluetooth Speaker",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "F03",
+    "name": "Floor protection: USB-C Cable",
+    "type": "floor",
+    "items": [
+      {
+        "item_name": "USB-C Cable",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "F04",
+    "name": "Floor protection: Mechanical Keyboard",
+    "type": "floor",
+    "items": [
+      {
+        "item_name": "Mechanical Keyboard",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "F05",
+    "name": "Floor protection: Wireless Mouse",
+    "type": "floor",
+    "items": [
+      {
+        "item_name": "Wireless Mouse",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "F06",
+    "name": "Floor protection: Webcam",
+    "type": "floor",
+    "items": [
+      {
+        "item_name": "Webcam",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "F07",
+    "name": "Floor protection: Laptop Stand",
+    "type": "floor",
+    "items": [
+      {
+        "item_name": "Laptop Stand",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "F08",
+    "name": "Floor protection: Power Bank",
+    "type": "floor",
+    "items": [
+      {
+        "item_name": "Power Bank",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "F09",
+    "name": "Floor protection: Monitor Light",
+    "type": "floor",
+    "items": [
+      {
+        "item_name": "Monitor Light",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "F10",
+    "name": "Floor protection: Premium Keyboard",
+    "type": "floor",
+    "items": [
+      {
+        "item_name": "Premium Keyboard",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "R01",
+    "name": "Round limit: Premium Wireless Headphones",
+    "type": "rounds",
+    "items": [
+      {
+        "item_name": "Premium Wireless Headphones",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "R02",
+    "name": "Round limit: Bluetooth Speaker",
+    "type": "rounds",
+    "items": [
+      {
+        "item_name": "Bluetooth Speaker",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "R03",
+    "name": "Round limit: USB-C Cable",
+    "type": "rounds",
+    "items": [
+      {
+        "item_name": "USB-C Cable",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "R04",
+    "name": "Round limit: Mechanical Keyboard",
+    "type": "rounds",
+    "items": [
+      {
+        "item_name": "Mechanical Keyboard",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "R05",
+    "name": "Round limit: Wireless Mouse",
+    "type": "rounds",
+    "items": [
+      {
+        "item_name": "Wireless Mouse",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "R06",
+    "name": "Round limit: Webcam",
+    "type": "rounds",
+    "items": [
+      {
+        "item_name": "Webcam",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "R07",
+    "name": "Round limit: Laptop Stand",
+    "type": "rounds",
+    "items": [
+      {
+        "item_name": "Laptop Stand",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "R08",
+    "name": "Round limit: Power Bank",
+    "type": "rounds",
+    "items": [
+      {
+        "item_name": "Power Bank",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "R09",
+    "name": "Round limit: Monitor Light",
+    "type": "rounds",
+    "items": [
+      {
+        "item_name": "Monitor Light",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "R10",
+    "name": "Round limit: Premium Keyboard",
+    "type": "rounds",
+    "items": [
+      {
+        "item_name": "Premium Keyboard",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "E01",
+    "name": "Edge/consistency #1",
+    "type": "edge",
+    "items": [
+      {
+        "item_name": "Bluetooth Speaker",
+        "quantity": 2
+      }
+    ]
+  },
+  {
+    "id": "E02",
+    "name": "Edge/consistency #2",
+    "type": "edge",
+    "items": [
+      {
+        "item_name": "USB-C Cable",
+        "quantity": 5
+      }
+    ]
+  },
+  {
+    "id": "E03",
+    "name": "Edge/consistency #3",
+    "type": "edge",
+    "items": [
+      {
+        "item_name": "Laptop Stand",
+        "quantity": 3
+      }
+    ]
+  },
+  {
+    "id": "E04",
+    "name": "Edge/consistency #4",
+    "type": "edge",
+    "items": [
+      {
+        "item_name": "Wireless Mouse",
+        "quantity": 2
+      },
+      {
+        "item_name": "USB-C Cable",
+        "quantity": 2
+      }
+    ]
+  },
+  {
+    "id": "E05",
+    "name": "Edge/consistency #5",
+    "type": "edge",
+    "items": [
+      {
+        "item_name": "Webcam",
+        "quantity": 2
+      },
+      {
+        "item_name": "Power Bank",
+        "quantity": 2
+      }
+    ]
+  },
+  {
+    "id": "E06",
+    "name": "Edge/consistency #6",
+    "type": "edge",
+    "items": [
+      {
+        "item_name": "Premium Keyboard",
+        "quantity": 2
+      }
+    ]
+  },
+  {
+    "id": "E07",
+    "name": "Edge/consistency #7",
+    "type": "edge",
+    "items": [
+      {
+        "item_name": "Premium Wireless Headphones",
+        "quantity": 2
+      }
+    ]
+  },
+  {
+    "id": "E08",
+    "name": "Edge/consistency #8",
+    "type": "edge",
+    "items": [
+      {
+        "item_name": "Monitor Light",
+        "quantity": 4
+      }
+    ]
+  },
+  {
+    "id": "E09",
+    "name": "Edge/consistency #9",
+    "type": "edge",
+    "items": [
+      {
+        "item_name": "Mechanical Keyboard",
+        "quantity": 2
+      },
+      {
+        "item_name": "Wireless Mouse",
+        "quantity": 3
+      }
+    ]
+  },
+  {
+    "id": "E10",
+    "name": "Edge/consistency #10",
+    "type": "edge",
+    "items": [
+      {
+        "item_name": "Bluetooth Speaker",
+        "quantity": 1
+      },
+      {
+        "item_name": "USB-C Cable",
+        "quantity": 3
+      },
+      {
+        "item_name": "Laptop Stand",
+        "quantity": 2
+      }
+    ]
+  }
+]

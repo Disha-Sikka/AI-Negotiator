@@ -1,0 +1,547 @@
+{
+  "score": 60,
+  "total": 60,
+  "percentage": 100.0,
+  "results": [
+    {
+      "id": "B01",
+      "name": "Basic single item: Premium Wireless Headphones",
+      "status": "PASS",
+      "type": "basic",
+      "original_price": 5000.0,
+      "floor_price": 4750.0,
+      "initial_offer": 4938.0
+    },
+    {
+      "id": "B02",
+      "name": "Basic single item: Bluetooth Speaker",
+      "status": "PASS",
+      "type": "basic",
+      "original_price": 3000.0,
+      "floor_price": 2400.0,
+      "initial_offer": 2798.4
+    },
+    {
+      "id": "B03",
+      "name": "Basic single item: USB-C Cable",
+      "status": "PASS",
+      "type": "basic",
+      "original_price": 800.0,
+      "floor_price": 600.0,
+      "initial_offer": 728.0
+    },
+    {
+      "id": "B04",
+      "name": "Basic single item: Mechanical Keyboard",
+      "status": "PASS",
+      "type": "basic",
+      "original_price": 4500.0,
+      "floor_price": 4140.0,
+      "initial_offer": 4402.66
+    },
+    {
+      "id": "B05",
+      "name": "Basic single item: Wireless Mouse",
+      "status": "PASS",
+      "type": "basic",
+      "original_price": 1800.0,
+      "floor_price": 1530.0,
+      "initial_offer": 1712.3
+    },
+    {
+      "id": "B06",
+      "name": "Basic single item: Webcam",
+      "status": "PASS",
+      "type": "basic",
+      "original_price": 3500.0,
+      "floor_price": 3325.0,
+      "initial_offer": 3456.6
+    },
+    {
+      "id": "B07",
+      "name": "Basic single item: Laptop Stand",
+      "status": "PASS",
+      "type": "basic",
+      "original_price": 2200.0,
+      "floor_price": 1650.0,
+      "initial_offer": 2007.28
+    },
+    {
+      "id": "B08",
+      "name": "Basic single item: Power Bank",
+      "status": "PASS",
+      "type": "basic",
+      "original_price": 2500.0,
+      "floor_price": 2200.0,
+      "initial_offer": 2406.88
+    },
+    {
+      "id": "B09",
+      "name": "Basic single item: Monitor Light",
+      "status": "PASS",
+      "type": "basic",
+      "original_price": 2800.0,
+      "floor_price": 2240.0,
+      "initial_offer": 2612.74
+    },
+    {
+      "id": "B10",
+      "name": "Basic single item: Premium Keyboard",
+      "status": "PASS",
+      "type": "basic",
+      "original_price": 7000.0,
+      "floor_price": 6650.0,
+      "initial_offer": 6916.0
+    },
+    {
+      "id": "Q01",
+      "name": "Quantity safety: Premium Wireless Headphones",
+      "status": "PASS",
+      "type": "quantity",
+      "original_price": 5000.0,
+      "floor_price": 4750.0,
+      "initial_offer": 4938.0
+    },
+    {
+      "id": "Q02",
+      "name": "Quantity safety: Bluetooth Speaker",
+      "status": "PASS",
+      "type": "quantity",
+      "original_price": 3000.0,
+      "floor_price": 2400.0,
+      "initial_offer": 2798.4
+    },
+    {
+      "id": "Q03",
+      "name": "Quantity safety: USB-C Cable",
+      "status": "PASS",
+      "type": "quantity",
+      "original_price": 800.0,
+      "floor_price": 600.0,
+      "initial_offer": 728.0
+    },
+    {
+      "id": "Q04",
+      "name": "Quantity safety: Mechanical Keyboard",
+      "status": "PASS",
+      "type": "quantity",
+      "original_price": 4500.0,
+      "floor_price": 4140.0,
+      "initial_offer": 4402.66
+    },
+    {
+      "id": "Q05",
+      "name": "Quantity safety: Wireless Mouse",
+      "status": "PASS",
+      "type": "quantity",
+      "original_price": 1800.0,
+      "floor_price": 1530.0,
+      "initial_offer": 1712.3
+    },
+    {
+      "id": "Q06",
+      "name": "Quantity safety: Webcam",
+      "status": "PASS",
+      "type": "quantity",
+      "original_price": 3500.0,
+      "floor_price": 3325.0,
+      "initial_offer": 3456.6
+    },
+    {
+      "id": "Q07",
+      "name": "Quantity safety: Laptop Stand",
+      "status": "PASS",
+      "type": "quantity",
+      "original_price": 2200.0,
+      "floor_price": 1650.0,
+      "initial_offer": 2007.28
+    },
+    {
+      "id": "Q08",
+      "name": "Quantity safety: Power Bank",
+      "status": "PASS",
+      "type": "quantity",
+      "original_price": 2500.0,
+      "floor_price": 2200.0,
+      "initial_offer": 2406.88
+    },
+    {
+      "id": "Q09",
+      "name": "Quantity safety: Monitor Light",
+      "status": "PASS",
+      "type": "quantity",
+      "original_price": 2800.0,
+      "floor_price": 2240.0,
+      "initial_offer": 2612.74
+    },
+    {
+      "id": "Q10",
+      "name": "Quantity safety: Premium Keyboard",
+      "status": "PASS",
+      "type": "quantity",
+      "original_price": 7000.0,
+      "floor_price": 6650.0,
+      "initial_offer": 6916.0
+    },
+    {
+      "id": "C01",
+      "name": "Multi-item cart #1",
+      "status": "PASS",
+      "type": "cart",
+      "original_price": 4600.0,
+      "floor_price": 3600.0,
+      "initial_offer": 4250.08
+    },
+    {
+      "id": "C02",
+      "name": "Multi-item cart #2",
+      "status": "PASS",
+      "type": "cart",
+      "original_price": 5200.0,
+      "floor_price": 4050.0,
+      "initial_offer": 4806.58
+    },
+    {
+      "id": "C03",
+      "name": "Multi-item cart #3",
+      "status": "PASS",
+      "type": "cart",
+      "original_price": 6300.0,
+      "floor_price": 5670.0,
+      "initial_offer": 6119.86
+    },
+    {
+      "id": "C04",
+      "name": "Multi-item cart #4",
+      "status": "PASS",
+      "type": "cart",
+      "original_price": 6000.0,
+      "floor_price": 5525.0,
+      "initial_offer": 5869.85
+    },
+    {
+      "id": "C05",
+      "name": "Multi-item cart #5",
+      "status": "PASS",
+      "type": "cart",
+      "original_price": 7800.0,
+      "floor_price": 6990.0,
+      "initial_offer": 7573.99
+    },
+    {
+      "id": "C06",
+      "name": "Multi-item cart #6",
+      "status": "PASS",
+      "type": "cart",
+      "original_price": 10400.0,
+      "floor_price": 9380.0,
+      "initial_offer": 10118.89
+    },
+    {
+      "id": "C07",
+      "name": "Multi-item cart #7",
+      "status": "PASS",
+      "type": "cart",
+      "original_price": 6800.0,
+      "floor_price": 5250.0,
+      "initial_offer": 6257.38
+    },
+    {
+      "id": "C08",
+      "name": "Multi-item cart #8",
+      "status": "PASS",
+      "type": "cart",
+      "original_price": 10500.0,
+      "floor_price": 9665.0,
+      "initial_offer": 10272.5
+    },
+    {
+      "id": "C09",
+      "name": "Multi-item cart #9",
+      "status": "PASS",
+      "type": "cart",
+      "original_price": 10000.0,
+      "floor_price": 8640.0,
+      "initial_offer": 9599.18
+    },
+    {
+      "id": "C10",
+      "name": "Multi-item cart #10",
+      "status": "PASS",
+      "type": "cart",
+      "original_price": 13800.0,
+      "floor_price": 11900.0,
+      "initial_offer": 13240.94
+    },
+    {
+      "id": "F01",
+      "name": "Floor protection: Premium Wireless Headphones",
+      "status": "PASS",
+      "type": "floor",
+      "original_price": 5000.0,
+      "floor_price": 4750.0,
+      "initial_offer": 4938.0
+    },
+    {
+      "id": "F02",
+      "name": "Floor protection: Bluetooth Speaker",
+      "status": "PASS",
+      "type": "floor",
+      "original_price": 3000.0,
+      "floor_price": 2400.0,
+      "initial_offer": 2798.4
+    },
+    {
+      "id": "F03",
+      "name": "Floor protection: USB-C Cable",
+      "status": "PASS",
+      "type": "floor",
+      "original_price": 800.0,
+      "floor_price": 600.0,
+      "initial_offer": 728.0
+    },
+    {
+      "id": "F04",
+      "name": "Floor protection: Mechanical Keyboard",
+      "status": "PASS",
+      "type": "floor",
+      "original_price": 4500.0,
+      "floor_price": 4140.0,
+      "initial_offer": 4402.66
+    },
+    {
+      "id": "F05",
+      "name": "Floor protection: Wireless Mouse",
+      "status": "PASS",
+      "type": "floor",
+      "original_price": 1800.0,
+      "floor_price": 1530.0,
+      "initial_offer": 1712.3
+    },
+    {
+      "id": "F06",
+      "name": "Floor protection: Webcam",
+      "status": "PASS",
+      "type": "floor",
+      "original_price": 3500.0,
+      "floor_price": 3325.0,
+      "initial_offer": 3456.6
+    },
+    {
+      "id": "F07",
+      "name": "Floor protection: Laptop Stand",
+      "status": "PASS",
+      "type": "floor",
+      "original_price": 2200.0,
+      "floor_price": 1650.0,
+      "initial_offer": 2007.28
+    },
+    {
+      "id": "F08",
+      "name": "Floor protection: Power Bank",
+      "status": "PASS",
+      "type": "floor",
+      "original_price": 2500.0,
+      "floor_price": 2200.0,
+      "initial_offer": 2406.88
+    },
+    {
+      "id": "F09",
+      "name": "Floor protection: Monitor Light",
+      "status": "PASS",
+      "type": "floor",
+      "original_price": 2800.0,
+      "floor_price": 2240.0,
+      "initial_offer": 2612.74
+    },
+    {
+      "id": "F10",
+      "name": "Floor protection: Premium Keyboard",
+      "status": "PASS",
+      "type": "floor",
+      "original_price": 7000.0,
+      "floor_price": 6650.0,
+      "initial_offer": 6916.0
+    },
+    {
+      "id": "R01",
+      "name": "Round limit: Premium Wireless Headphones",
+      "status": "PASS",
+      "type": "rounds",
+      "original_price": 5000.0,
+      "floor_price": 4750.0,
+      "initial_offer": 4938.0
+    },
+    {
+      "id": "R02",
+      "name": "Round limit: Bluetooth Speaker",
+      "status": "PASS",
+      "type": "rounds",
+      "original_price": 3000.0,
+      "floor_price": 2400.0,
+      "initial_offer": 2798.4
+    },
+    {
+      "id": "R03",
+      "name": "Round limit: USB-C Cable",
+      "status": "PASS",
+      "type": "rounds",
+      "original_price": 800.0,
+      "floor_price": 600.0,
+      "initial_offer": 728.0
+    },
+    {
+      "id": "R04",
+      "name": "Round limit: Mechanical Keyboard",
+      "status": "PASS",
+      "type": "rounds",
+      "original_price": 4500.0,
+      "floor_price": 4140.0,
+      "initial_offer": 4402.66
+    },
+    {
+      "id": "R05",
+      "name": "Round limit: Wireless Mouse",
+      "status": "PASS",
+      "type": "rounds",
+      "original_price": 1800.0,
+      "floor_price": 1530.0,
+      "initial_offer": 1712.3
+    },
+    {
+      "id": "R06",
+      "name": "Round limit: Webcam",
+      "status": "PASS",
+      "type": "rounds",
+      "original_price": 3500.0,
+      "floor_price": 3325.0,
+      "initial_offer": 3456.6
+    },
+    {
+      "id": "R07",
+      "name": "Round limit: Laptop Stand",
+      "status": "PASS",
+      "type": "rounds",
+      "original_price": 2200.0,
+      "floor_price": 1650.0,
+      "initial_offer": 2007.28
+    },
+    {
+      "id": "R08",
+      "name": "Round limit: Power Bank",
+      "status": "PASS",
+      "type": "rounds",
+      "original_price": 2500.0,
+      "floor_price": 2200.0,
+      "initial_offer": 2406.88
+    },
+    {
+      "id": "R09",
+      "name": "Round limit: Monitor Light",
+      "status": "PASS",
+      "type": "rounds",
+      "original_price": 2800.0,
+      "floor_price": 2240.0,
+      "initial_offer": 2612.74
+    },
+    {
+      "id": "R10",
+      "name": "Round limit: Premium Keyboard",
+      "status": "PASS",
+      "type": "rounds",
+      "original_price": 7000.0,
+      "floor_price": 6650.0,
+      "initial_offer": 6916.0
+    },
+    {
+      "id": "E01",
+      "name": "Edge/consistency #1",
+      "status": "PASS",
+      "type": "edge",
+      "original_price": 6000.0,
+      "floor_price": 4800.0,
+      "initial_offer": 5577.6
+    },
+    {
+      "id": "E02",
+      "name": "Edge/consistency #2",
+      "status": "PASS",
+      "type": "edge",
+      "original_price": 4000.0,
+      "floor_price": 3000.0,
+      "initial_offer": 3608.0
+    },
+    {
+      "id": "E03",
+      "name": "Edge/consistency #3",
+      "status": "PASS",
+      "type": "edge",
+      "original_price": 6600.0,
+      "floor_price": 4950.0,
+      "initial_offer": 5982.24
+    },
+    {
+      "id": "E04",
+      "name": "Edge/consistency #4",
+      "status": "PASS",
+      "type": "edge",
+      "original_price": 5200.0,
+      "floor_price": 4260.0,
+      "initial_offer": 4869.46
+    },
+    {
+      "id": "E05",
+      "name": "Edge/consistency #5",
+      "status": "PASS",
+      "type": "edge",
+      "original_price": 12000.0,
+      "floor_price": 11050.0,
+      "initial_offer": 11724.5
+    },
+    {
+      "id": "E06",
+      "name": "Edge/consistency #6",
+      "status": "PASS",
+      "type": "edge",
+      "original_price": 14000.0,
+      "floor_price": 13300.0,
+      "initial_offer": 13820.8
+    },
+    {
+      "id": "E07",
+      "name": "Edge/consistency #7",
+      "status": "PASS",
+      "type": "edge",
+      "original_price": 10000.0,
+      "floor_price": 9500.0,
+      "initial_offer": 9868.0
+    },
+    {
+      "id": "E08",
+      "name": "Edge/consistency #8",
+      "status": "PASS",
+      "type": "edge",
+      "original_price": 11200.0,
+      "floor_price": 8960.0,
+      "initial_offer": 10397.18
+    },
+    {
+      "id": "E09",
+      "name": "Edge/consistency #9",
+      "status": "PASS",
+      "type": "edge",
+      "original_price": 14400.0,
+      "floor_price": 12870.0,
+      "initial_offer": 13926.01
+    },
+    {
+      "id": "E10",
+      "name": "Edge/consistency #10",
+      "status": "PASS",
+      "type": "edge",
+      "original_price": 9800.0,
+      "floor_price": 7500.0,
+      "initial_offer": 8968.78
+    }
+  ]
+}
