@@ -129,6 +129,11 @@ function App() {
     0
   );
 
+  const cartCount = cart.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
+
   // --------------------------------------------------
   // START NEGOTIATION
   // --------------------------------------------------
@@ -592,7 +597,7 @@ function App() {
   <div className="header-actions">
     <button
       className="dashboard-button"
-      onClick={() => setShowDashboard(true)}
+      onClick={openDashboard}
     >
       Merchant Dashboard
     </button>
