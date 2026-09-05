@@ -1,3 +1,9 @@
+fastapi
+uvicorn
 pandas
 numpy
 scikit-learn
+razorpay
+python-dotenv
+google-genai
+pydantic

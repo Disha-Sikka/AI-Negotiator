@@ -1,0 +1,557 @@
+{
+  "suite": "AI PAYMENT NEGOTIATOR - EVIDENCE-BASED STRONG JUDGE",
+  "total_cases": 60,
+  "passed": 0,
+  "failed": 60,
+  "pass_rate": 0.0,
+  "status": "NEEDS REVIEW",
+  "notes": [
+    "Every case records a round-by-round transcript.",
+    "Quantity tests verify actual quantity acceptance and floor safety.",
+    "Floor tests apply repeated below-floor pressure across rounds.",
+    "Round-limit tests exercise five safe counteroffers and a sixth attempt.",
+    "The report stores assertions and post-action state, not only opening metrics."
+  ],
+  "cases": [
+    {
+      "id": "B01",
+      "name": "Single item initial offer is safe",
+      "type": "basic",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "B02",
+      "name": "Session initializes correctly",
+      "type": "basic",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "B03",
+      "name": "Customer can accept current offer",
+      "type": "basic",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "B04",
+      "name": "Safe counteroffer advances negotiation",
+      "type": "basic",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "B05",
+      "name": "Multi-item cart initializes safely",
+      "type": "basic",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "B06",
+      "name": "Basic safety invariant 1",
+      "type": "basic",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "B07",
+      "name": "Basic safety invariant 2",
+      "type": "basic",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "B08",
+      "name": "Basic safety invariant 3",
+      "type": "basic",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "B09",
+      "name": "Basic safety invariant 4",
+      "type": "basic",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "B10",
+      "name": "Basic safety invariant 5",
+      "type": "basic",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "Q01",
+      "name": "Quantity deal safety 1",
+      "type": "quantity",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "Q02",
+      "name": "Quantity deal safety 2",
+      "type": "quantity",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "Q03",
+      "name": "Quantity deal safety 3",
+      "type": "quantity",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "Q04",
+      "name": "Quantity deal safety 4",
+      "type": "quantity",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "Q05",
+      "name": "Quantity deal safety 5",
+      "type": "quantity",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "Q06",
+      "name": "Quantity deal safety 6",
+      "type": "quantity",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "Q07",
+      "name": "Quantity deal safety 7",
+      "type": "quantity",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "Q08",
+      "name": "Quantity deal safety 8",
+      "type": "quantity",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "Q09",
+      "name": "Quantity deal safety 9",
+      "type": "quantity",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "Q10",
+      "name": "Quantity deal safety 10",
+      "type": "quantity",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "C01",
+      "name": "Multi-product negotiation 1",
+      "type": "cart",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "C02",
+      "name": "Multi-product negotiation 2",
+      "type": "cart",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "C03",
+      "name": "Multi-product negotiation 3",
+      "type": "cart",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "C04",
+      "name": "Multi-product negotiation 4",
+      "type": "cart",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "C05",
+      "name": "Multi-product negotiation 5",
+      "type": "cart",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "C06",
+      "name": "Multi-product negotiation 6",
+      "type": "cart",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "C07",
+      "name": "Multi-product negotiation 7",
+      "type": "cart",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "C08",
+      "name": "Multi-product negotiation 8",
+      "type": "cart",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "C09",
+      "name": "Multi-product negotiation 9",
+      "type": "cart",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "C10",
+      "name": "Multi-product negotiation 10",
+      "type": "cart",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "F01",
+      "name": "Multi-round floor protection 1",
+      "type": "floor",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "F02",
+      "name": "Multi-round floor protection 2",
+      "type": "floor",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "F03",
+      "name": "Multi-round floor protection 3",
+      "type": "floor",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "F04",
+      "name": "Multi-round floor protection 4",
+      "type": "floor",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "F05",
+      "name": "Multi-round floor protection 5",
+      "type": "floor",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "F06",
+      "name": "Multi-round floor protection 6",
+      "type": "floor",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "F07",
+      "name": "Multi-round floor protection 7",
+      "type": "floor",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "F08",
+      "name": "Multi-round floor protection 8",
+      "type": "floor",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "F09",
+      "name": "Multi-round floor protection 9",
+      "type": "floor",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "F10",
+      "name": "Multi-round floor protection 10",
+      "type": "floor",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "R01",
+      "name": "Five-round limit enforcement 1",
+      "type": "round_limit",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "R02",
+      "name": "Five-round limit enforcement 2",
+      "type": "round_limit",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "R03",
+      "name": "Five-round limit enforcement 3",
+      "type": "round_limit",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "R04",
+      "name": "Five-round limit enforcement 4",
+      "type": "round_limit",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "R05",
+      "name": "Five-round limit enforcement 5",
+      "type": "round_limit",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "R06",
+      "name": "Five-round limit enforcement 6",
+      "type": "round_limit",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "R07",
+      "name": "Five-round limit enforcement 7",
+      "type": "round_limit",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "R08",
+      "name": "Five-round limit enforcement 8",
+      "type": "round_limit",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "R09",
+      "name": "Five-round limit enforcement 9",
+      "type": "round_limit",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "R10",
+      "name": "Five-round limit enforcement 10",
+      "type": "round_limit",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "E01",
+      "name": "Edge and consistency case 1",
+      "type": "edge",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "E02",
+      "name": "Edge and consistency case 2",
+      "type": "edge",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "E03",
+      "name": "Edge and consistency case 3",
+      "type": "edge",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "E04",
+      "name": "Edge and consistency case 4",
+      "type": "edge",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "E05",
+      "name": "Edge and consistency case 5",
+      "type": "edge",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "E06",
+      "name": "Edge and consistency case 6",
+      "type": "edge",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "E07",
+      "name": "Edge and consistency case 7",
+      "type": "edge",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "E08",
+      "name": "Edge and consistency case 8",
+      "type": "edge",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "E09",
+      "name": "Edge and consistency case 9",
+      "type": "edge",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    },
+    {
+      "id": "E10",
+      "name": "Edge and consistency case 10",
+      "type": "edge",
+      "status": "FAIL",
+      "assertions": [],
+      "transcript": [],
+      "error": "TypeError: string indices must be integers, not 'str'"
+    }
+  ]
+}
