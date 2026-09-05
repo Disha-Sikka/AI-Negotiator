@@ -1264,6 +1264,48 @@ def verify_payment(
         }
 
 
+
+
+# ============================================================
+# Negotiation Audit Trail
+# ============================================================
+
+@app.get("/negotiate/{session_id}/history")
+def negotiation_history(session_id: str):
+    """
+    Return the deterministic negotiation audit trail for one session.
+
+    Each history entry is created by NegotiationSession and records:
+    - negotiation round
+    - customer offer
+    - agent offer
+    - decision
+    - quantity, when a quantity deal is accepted
+    """
+
+    session = sessions.get(session_id)
+
+    if session is None:
+        return {
+            "success": False,
+            "message": "Negotiation session not found."
+        }
+
+    history = session.get_history()
+
+    return {
+        "success": True,
+        "session_id": session_id,
+        "negotiation_mode": session.negotiation_mode,
+        "round": session.round_number,
+        "max_rounds": MAX_ROUNDS,
+        "accepted": session.accepted,
+        "original_price": round(float(session.original_price), 2),
+        "floor_price": round(float(session.floor_price), 2),
+        "current_offer": round(float(session.current_offer), 2),
+        "history": history
+    }
+
 # ============================================================
 # Merchant Dashboard
 # ============================================================

@@ -1,9 +1,9 @@
 fastapi
 uvicorn
+pydantic
+python-dotenv
+razorpay
+google-genai
 pandas
 numpy
 scikit-learn
-razorpay
-python-dotenv
-google-genai
-pydantic

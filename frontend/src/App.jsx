@@ -68,6 +68,10 @@ function App() {
 
   const [showDashboard, setShowDashboard] = useState(false);
 
+  const [showAuditTrail, setShowAuditTrail] = useState(false);
+  const [auditTrail, setAuditTrail] = useState([]);
+  const [auditSummary, setAuditSummary] = useState(null);
+
   const [dashboard, setDashboard] = useState({
     total_negotiations: 0,
     accepted_deals: 0,
@@ -135,6 +139,20 @@ function App() {
   );
 
   // --------------------------------------------------
+  // BUY WITHOUT NEGOTIATION
+  // --------------------------------------------------
+
+  const buyWithoutNegotiation = () => {
+    if (cart.length === 0) return;
+
+    alert(
+      `Standard checkout selected for ₹${cartTotal.toLocaleString(
+        "en-IN"
+      )}.`
+    );
+  };
+
+  // --------------------------------------------------
   // START NEGOTIATION
   // --------------------------------------------------
 
@@ -147,6 +165,9 @@ function App() {
     setPaymentSuccess(false);
     setFinalPrice(null);
     setMessages([]);
+    setAuditTrail([]);
+    setAuditSummary(null);
+    setShowAuditTrail(false);
 
     const cartDescription = cart
       .map(
@@ -208,6 +229,45 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // --------------------------------------------------
+  // NEGOTIATION AUDIT TRAIL
+  // --------------------------------------------------
+
+  const refreshAuditTrail = async (id = sessionId) => {
+    if (!id) return;
+
+    try {
+      const response = await fetch(
+        `${API_URL}/negotiate/${id}/history`
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        return;
+      }
+
+      setAuditTrail(data.history || []);
+      setAuditSummary({
+        round: data.round,
+        maxRounds: data.max_rounds,
+        floorPrice: data.floor_price,
+        currentOffer: data.current_offer,
+        accepted: data.accepted
+      });
+    } catch (error) {
+      console.error("Unable to load audit trail:", error);
+    }
+  };
+
+  const toggleAuditTrail = async () => {
+    if (!showAuditTrail) {
+      await refreshAuditTrail();
+    }
+
+    setShowAuditTrail((current) => !current);
   };
 
   // --------------------------------------------------
@@ -777,14 +837,39 @@ function App() {
 
               </div>
 
-              <button
-                className="negotiate-button"
-                onClick={startNegotiation}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px"
+                }}
               >
-                <MessageCircle size={20} />
+                <button
+                  onClick={buyWithoutNegotiation}
+                  style={{
+                    width: "100%",
+                    padding: "13px 18px",
+                    fontSize: "15px",
+                    fontWeight: 700
+                  }}
+                >
+                  Buy Now
+                </button>
 
-                Negotiate with AI
-              </button>
+                <button
+                  className="negotiate-button"
+                  onClick={startNegotiation}
+                  style={{
+                    width: "100%",
+                    padding: "9px 14px",
+                    fontSize: "13px",
+                    fontWeight: 600
+                  }}
+                >
+                  <MessageCircle size={16} />
+                  Negotiate with AI
+                </button>
+              </div>
 
             </div>
 
@@ -821,11 +906,31 @@ function App() {
 
               </div>
 
-              <button
-                onClick={closeNegotiator}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px"
+                }}
               >
-                <X />
-              </button>
+                <button
+                  onClick={toggleAuditTrail}
+                  style={{
+                    width: "auto",
+                    padding: "7px 10px",
+                    fontSize: "12px",
+                    fontWeight: 600
+                  }}
+                >
+                  {showAuditTrail ? "Hide Audit" : "Audit Trail"}
+                </button>
+
+                <button
+                  onClick={closeNegotiator}
+                >
+                  <X />
+                </button>
+              </div>
 
             </div>
 
@@ -863,6 +968,134 @@ function App() {
 
             </div>
 
+
+            {/* NEGOTIATION AUDIT TRAIL */}
+
+            {showAuditTrail && (
+              <div
+                style={{
+                  margin: "0 16px 14px",
+                  padding: "14px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "12px",
+                  background: "#f9fafb",
+                  maxHeight: "220px",
+                  overflowY: "auto"
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "12px",
+                    marginBottom: "10px",
+                    fontSize: "12px"
+                  }}
+                >
+                  <strong>Negotiation Audit Trail</strong>
+
+                  {auditSummary && (
+                    <span style={{ opacity: 0.65 }}>
+                      Round {auditSummary.round}/{auditSummary.maxRounds}
+                    </span>
+                  )}
+                </div>
+
+                {auditSummary && (
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      lineHeight: 1.6,
+                      marginBottom: "10px"
+                    }}
+                  >
+                    <span>
+                      Merchant floor: ₹
+                      {Number(auditSummary.floorPrice).toLocaleString(
+                        "en-IN",
+                        {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        }
+                      )}
+                    </span>
+                    {" · "}
+                    <span>
+                      Current offer: ₹
+                      {Number(auditSummary.currentOffer).toLocaleString(
+                        "en-IN",
+                        {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        }
+                      )}
+                    </span>
+                  </div>
+                )}
+
+                {auditTrail.length === 0 ? (
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "12px",
+                      opacity: 0.65
+                    }}
+                  >
+                    No pricing rounds yet. The trail will appear after
+                    the first price offer or accepted quantity deal.
+                  </p>
+                ) : (
+                  auditTrail.map((entry, index) => (
+                    <div
+                      key={`${entry.round}-${index}`}
+                      style={{
+                        padding: "9px 0",
+                        borderTop:
+                          index === 0
+                            ? "none"
+                            : "1px solid #e5e7eb",
+                        fontSize: "12px",
+                        lineHeight: 1.55
+                      }}
+                    >
+                      <div>
+                        <strong>
+                          Round {entry.round} · {entry.decision}
+                        </strong>
+                      </div>
+
+                      <div>
+                        Customer offer: ₹
+                        {Number(entry.customer_offer).toLocaleString(
+                          "en-IN",
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          }
+                        )}
+                      </div>
+
+                      <div>
+                        Agent offer: ₹
+                        {Number(entry.agent_offer).toLocaleString(
+                          "en-IN",
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          }
+                        )}
+                      </div>
+
+                      {entry.quantity && (
+                        <div>
+                          Quantity accepted: {entry.quantity}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
 
             {/* ACCEPTED / PAYMENT */}
 
