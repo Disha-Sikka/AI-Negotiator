@@ -1,454 +1,418 @@
-::: {align="center"}
+# AI Payment Negotiator
 
-🤝 AI Payment Negotiator
+An AI agent that negotiates price with a customer **within merchant-set
+economic constraints**, then hands the agreed deal to **Razorpay** to
+complete the transaction.
 
-Turn checkout into a conversation without giving up control of merchant margins.
+Built for the **Razorpay AI Buildathon 2026** --- **Track 01: AI Growth
+& Agentic Commerce**.
 
-Razorpay AI Buildathon 2026 · AI Growth & Agentic Commerce
+## The problem
 
-<br>{=html}
+Online pricing is mostly static: one listed price, take it or leave it.
 
-An AI-powered checkout layer that lets customers negotiate a better
-deal while keeping every offer inside merchant-defined pricing
-constraints.
-:::
+A physical shopkeeper can price more contextually. They may consider
+quantity, how long stock has been sitting, current demand, available
+margin, and how much flexibility they actually have before agreeing to a
+deal.
 
-✨ What is AI Payment Negotiator?
+**AI Payment Negotiator brings that contextual, bounded negotiation to
+online checkout, then closes the sale through Razorpay.**
 
-Online stores usually handle pricing in one of two ways: show the
-listed price or apply a fixed discount.
+The goal is not to discount every cart. It is to find a deal that can
+help convert a hesitant customer while keeping the merchant's minimum
+economics protected.
 
-That leaves very little room between "I'll buy this" and "this is a
-little too expensive, so I'll leave."
+## Architecture
 
-AI Payment Negotiator explores that space by turning checkout into a
-controlled conversation.
+``` text
+Customer message ("can you do ₹4500 for the headphones?")
+        │
+        ▼
+┌────────────────────────────┐
+│ Local parsing / resolution │   Fast path for straightforward
+│                            │   product, quantity, acceptance,
+│ cart_builder.py            │   and price messages. Avoids an
+│ product_resolver.py        │   LLM call when one is not needed.
+└────────────┬───────────────┘
+             │
+             │ falls through when needed
+             ▼
+┌────────────────────────────┐
+│ Gemini 2.5 Flash           │   Used for natural-language
+│                            │   understanding: extracting intent,
+│ src/llm_agent.py           │   requested price/discount, items,
+│                            │   and quantities from free text.
+└────────────┬───────────────┘
+             │
+             ▼
+┌────────────────────────────┐
+│ Negotiation engine         │   Deterministic financial logic.
+│                            │
+│ negotiation_session.py     │   Handles merchant floors,
+│ pricing_engine.py          │   concessions, negotiability,
+│ negotiability.py           │   quantity/cart offers, acceptance,
+│ cart_engine.py             │   and the 5-round limit.
+│ quantity_offer.py          │
+└────────────┬───────────────┘
+             │
+             ▼
+┌────────────────────────────┐
+│ FastAPI / Razorpay         │   An order is created only after
+│                            │   a deal is accepted. Payment is
+│ api.py                     │   completed through Razorpay and
+│ /payment/create-order      │   verified on the backend.
+│ /payment/verify            │
+└────────────┬───────────────┘
+             │
+             ▼
+┌────────────────────────────┐
+│ Merchant dashboard         │   Tracks negotiation and payment
+│                            │   outcomes for the prototype.
+│ /merchant/dashboard        │
+└────────────────────────────┘
+```
 
-A customer can ask for a better deal, receive a quantity-based
-offer, negotiate the price, accept the final deal, and complete the
-payment through Razorpay.
+**Why split it this way?**
 
-The key idea
+Language understanding is exactly where an LLM is useful. A customer can
+write something like:
 
-The AI handles the conversation. The merchant controls the
-economics.
+``` text
+I'll take 5 USB-C cables for ₹3000.
+```
 
-Gemini can help understand what the customer is asking for, but it does
-not decide how low the price can go. Every offer is checked against
-deterministic rules for minimum margins, maximum discounts, and
-merchant price floors.
+and that free-form message can be converted into structured negotiation
+intent.
 
-🎯 The Problem
+Pricing decisions are different. They need to be **deterministic,
+auditable, and bounded by merchant rules**.
 
-Static discounts treat very different customers in exactly the same way.
+So the LLM never decides a price. It only helps extract what the
+customer said. **The merchant floor and negotiation decisions are
+enforced in code, not in a prompt.**
 
-A merchant may give the same 10% discount to:
+## How negotiation works
 
-someone who would have purchased at full price, and
+-   **Floor price:** Each product gets a minimum safe price:
 
-someone who genuinely needed a small incentive to complete the
-purchase.
+    ``` text
+    max(
+        selling_price × (1 - max_discount_pct),
+        cost_price × (1 + min_margin_pct)
+    )
+    ```
 
-Meanwhile, a customer who likes the product but is uncomfortable with
-the current price may simply abandon the cart.
+    The more conservative value becomes the merchant floor. The
+    negotiation engine never intentionally generates an offer below it.
 
-This project started with one question:
+-   **Negotiability:** Product-level signals such as demand, inventory
+    conditions, margin, and related product attributes influence how
+    much room the system has to negotiate.
 
-Can checkout become a negotiation while still protecting the merchant's economics?
+-   **Opening offer:** The engine creates an initial offer between the
+    listed price and merchant floor based on the cart's negotiation
+    strength.
 
-Instead of giving every shopper the same discount, the system creates a
-bounded negotiation around the transaction.
+-   **Concessions:** When the customer makes a safe offer below the
+    current AI offer, the engine can move toward the customer while
+    clamping the result to the merchant floor.
 
-💡 The Approach
+-   **Round limit:** Price negotiation is capped at **5 rounds**. Once
+    the fifth round is reached, the system returns its final offer
+    rather than continuing to concede.
 
-The strategy is intentionally simple:
+-   **Quantity offers:** For eligible single-product carts, the system
+    can propose a higher quantity at a better effective price before
+    moving deeper into price negotiation.
 
-Quantity upsell first → Price negotiation second → Never below
-merchant floor → Explicit acceptance → Razorpay payment
+-   **Cart-level negotiation:** Multi-item carts are evaluated using the
+    negotiability and floor constraints of the products in the cart
+    rather than treating the entire cart as one unrestricted discount
+    pool.
 
-Add to Cart
-     ↓
-Start Negotiation
-     ↓
-Check Quantity Opportunity
-     ↓
-Quantity Deal Available?
-   ↙               ↘
- Yes                No
-  ↓                  ↓
-Offer More       Price Negotiation
-for Less/Unit         ↓
-   ↓             Counter / Accept
-Accept or Reject      ↓
-   ↘                  ↙
-      Deal Accepted
-           ↓
-     Razorpay Payment
-           ↓
-   Merchant Dashboard
+The overall strategy is:
 
-The system first tries to create value instead of immediately reducing
-the price. For a single-product cart, it checks whether buying a larger
-quantity can unlock a useful discount.
+> **Quantity opportunity first → Price negotiation second → Never below
+> merchant floor → Explicit acceptance → Payment**
 
-If the customer does not want the quantity deal, normal price
-negotiation continues.
+## Quantity offers
 
-Price negotiation is capped at 5 rounds, preventing endless
-bargaining.
+For a single-product cart, the agent can first look for an opportunity
+to increase quantity instead of immediately giving a deeper discount.
 
-🏗️ System Architecture
+The prototype uses the following tiers:
 
-The architecture deliberately separates language understanding,
-financial decision-making, and payment execution.
+    Quantity   Discount
+  ---------- ----------
+           2         5%
+           3         7%
+           5        10%
+          10        12%
 
-                              CUSTOMER
-                                  │
-                                  ▼
-                    ┌─────────────────────────┐
-                    │      React Frontend     │
-                    │                         │
-                    │  • Product Catalog      │
-                    │  • Shopping Cart        │
-                    │  • Negotiation Chat     │
-                    │  • Payment Experience   │
-                    │  • Merchant Dashboard   │
-                    └────────────┬────────────┘
-                                 │
-                              REST API
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │      FastAPI Backend    │
-                    │          api.py         │
-                    └────────────┬────────────┘
-                                 │
-                  ┌──────────────┴───────────────┐
-                  │                              │
-                  ▼                              ▼
-       ┌─────────────────────┐        ┌─────────────────────┐
-       │ Request Understanding│        │ Product Resolution  │
-       │                     │        │                     │
-       │ Local Parser        │        │ product_resolver.py │
-       │       ↓             │        │ cart_builder.py     │
-       │ Gemini Fallback     │        │ data_loader.py      │
-       └──────────┬──────────┘        └──────────┬──────────┘
-                  │                              │
-                  └──────────────┬───────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │   Negotiation Session   │
-                    │                         │
-                    │  • Current Offer        │
-                    │  • Negotiation History  │
-                    │  • Round Tracking       │
-                    │  • Acceptance State     │
-                    │  • Maximum 5 Rounds     │
-                    └────────────┬────────────┘
-                                 │
-              ┌──────────────────┼──────────────────┐
-              │                  │                  │
-              ▼                  ▼                  ▼
-    ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-    │ Pricing Engine  │ │ Negotiability   │ │ Quantity Offer  │
-    │                 │ │ Engine          │ │ Engine          │
-    │ Merchant Floor  │ │ Product Signals │ │ Quantity Tiers  │
-    │ Margin Rules    │ │ Demand Level    │ │ Safe Discounts  │
-    │ Discount Limits │ │                 │ │                 │
-    └────────┬────────┘ └────────┬────────┘ └────────┬────────┘
-             │                   │                   │
-             └───────────────────┼───────────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │  Negotiation Decision   │
-                    │                         │
-                    │  ACCEPT                 │
-                    │  COUNTER                │
-                    │  BELOW_FLOOR            │
-                    │  FINAL_OFFER            │
-                    └────────────┬────────────┘
-                                 │
-                           Deal accepted?
-                            ↙          ↘
-                          No            Yes
-                          │              │
-                          ▼              ▼
-                     Continue     ┌──────────────────┐
-                    Negotiation   │     Razorpay     │
-                                  │ Create Order     │
-                                  │ Checkout         │
-                                  │ Verify Payment   │
-                                  └────────┬─────────┘
-                                           │
-                                           ▼
-                                  ┌──────────────────┐
-                                  │ Merchant         │
-                                  │ Dashboard        │
-                                  │                  │
-                                  │ Negotiations     │
-                                  │ Accepted Deals   │
-                                  │ Paid Orders      │
-                                  │ Revenue          │
-                                  │ Savings          │
-                                  │ Avg. Discount    │
-                                  └──────────────────┘
-
-Why this separation matters
-
-Gemini understands language.
-The negotiation engine makes the pricing decision.
-Razorpay executes the accepted transaction.
-
-An LLM therefore never receives unrestricted control over merchant
-pricing.
-
-🛍️ Customer Journey
-
-From the customer's side, the experience stays simple:
-
-Browse Products
-      ↓
-Add to Cart
-      ↓
-Negotiate with AI
-      ↓
-Quantity Opportunity
-      ↓
-Price Negotiation
-      ↓
-Accept Deal
-      ↓
-Pay with Razorpay
-      ↓
-Order Confirmed
-
-The complexity stays behind the interface. The customer only sees a
-storefront and a conversation about the deal.
-
-🧠 How a Negotiation Works
-
-When the customer clicks Negotiate with AI, the frontend sends the
-cart to the FastAPI backend.
-
-The backend resolves the products and creates a NegotiationSession
-containing:
-
-Original cart price
-
-Merchant floor
-
-Current AI offer
-
-Negotiation history
-
-Current round
-
-Acceptance state
-
-Available quantity opportunity
-
-A customer offer can lead to four decisions:
-
-Decision                            Meaning
-
-ACCEPT                          The customer's offer is acceptable
-and the deal is locked.
-
-COUNTER                         The offer is safe, but the system
-can negotiate for a better price.
-
-BELOW_FLOOR                     The requested price violates the
-merchant's minimum acceptable
-price.
-
-📦 Why Quantity Comes First
-
-Negotiation does not always need to mean a deeper discount.
-
-Instead of immediately reducing the price of one unit, the system first
-checks whether a larger quantity at a slightly better per-unit price
-can create a better transaction.
-
-Current quantity tiers:
-
-Quantity   Discount
-
-   **2**     **5%**
-   **3**     **7%**
-   **5**    **10%**
-  **10**    **12%**
-
-Every quantity offer is still checked against the product's merchant
+Every quantity deal is still checked against the applicable merchant
 floor.
 
-Growth logic: give the customer a meaningful saving while creating
-an opportunity to increase cart value.
+For example, with the prototype's **Bluetooth Speaker**:
 
-🛡️ Merchant Protection
+``` text
+1 speaker listed price:       ₹3,000
+2 speakers normal total:      ₹6,000
+2-speaker quantity deal:      ₹5,700
+Customer saving:                ₹300
+```
 
-Merchant protection is a hard constraint, not a suggestion to the
-AI.
+The customer gets a meaningful saving while the merchant gets a larger
+cart.
 
-Each product contains business information such as selling price, cost
-price, minimum margin, maximum discount, demand level, and negotiability
-signals.
+## Merchant protection
 
-1. Margin Floor
+Merchant protection is a hard rule in the negotiation engine.
 
-Margin Floor = Cost Price × (1 + Minimum Margin %)
+For each product:
 
-2. Discount Floor
+``` text
+Margin Floor =
+Cost Price × (1 + Minimum Margin %)
 
-Discount Floor = Selling Price × (1 - Maximum Discount %)
+Discount Floor =
+Selling Price × (1 - Maximum Discount %)
 
-3. Final Merchant Floor
+Merchant Floor =
+max(Margin Floor, Discount Floor)
+```
 
-Merchant Floor = max(Margin Floor, Discount Floor)
+This means a customer can negotiate aggressively, but repeated low
+offers cannot force the engine to cross the merchant's configured floor.
 
-Every generated deal must remain at or above this value.
+For the **Bluetooth Speaker** in the prototype:
 
-Even repeated low offers cannot pressure the conversational layer into
-violating the merchant's pricing rules.
+``` text
+Listed price:      ₹3,000
+Merchant floor:    ₹2,400
+Initial AI offer:  ~₹2,798
+```
 
-🔎 Example: Bluetooth Speaker
+An offer such as ₹1,500 is below the floor, so the engine will not
+accept it or counter below ₹2,400.
 
-Consider the Bluetooth Speaker in the prototype:
+## Negotiation decisions
 
-Metric                     Amount
+During a price conversation, the engine returns a small set of explicit
+decisions:
 
-Listed Price           ₹3,000
-Merchant Floor         ₹2,400
-Initial AI Offer     ~₹2,798
+  -----------------------------------------------------------------------
+  Decision                            Meaning
+  ----------------------------------- -----------------------------------
+  `ACCEPT`                            The customer's offer is acceptable
+                                      and the deal is locked.
 
-A reasonable offer above ₹2,400 can lead to another counteroffer.
+  `COUNTER`                           The offer is safe, but the engine
+                                      responds with another price.
 
-But if the customer says:
+  `BELOW_FLOOR`                       The customer's offer is below the
+                                      merchant's minimum safe price.
 
-I'll pay ₹1,500.
+  `FINAL_OFFER`                       The negotiation limit has been
+                                      reached and the engine holds its
+                                      final offer.
 
-the system identifies it as BELOW_FLOOR and refuses to cross ₹2,400.
+  `QUANTITY_ACCEPTED`                 The customer accepts the proposed
+                                      quantity deal.
+  -----------------------------------------------------------------------
 
-Quantity path
+Keeping these outcomes explicit makes the negotiation flow easier to
+test and reason about.
 
-For two Bluetooth Speakers:
+## Payment flow
 
-Metric                     Amount
+1.  The customer negotiates until the session reaches an accepted state.
 
-Normal Total           ₹6,000
-Quantity Deal          ₹5,700
-Customer Saving          ₹300
-Recalculated Floor     ₹4,800
+2.  The frontend calls:
 
-The customer gets a real saving, the merchant gets a larger cart, and
-the transaction remains safely above the floor.
+    ``` text
+    POST /payment/create-order
+    ```
 
-✨ Role of Gemini
+    The backend refuses to create a payment order unless the negotiation
+    session has been accepted.
 
-Gemini is useful in this project, but it is intentionally not in
-charge of financial logic.
+3.  The accepted negotiated amount is converted to paise and used to
+    create a Razorpay order.
 
-Customer Message
-       ↓
-Local Parsing
-   ↙       ↘
-Understood  Not Understood
-   │             │
-   │             ▼
-   │       Gemini Fallback
-   │             │
-   └──────┬──────┘
-          ▼
- Structured Request
-          ↓
-Deterministic Negotiation Engine
+4.  The customer completes payment through **Razorpay Checkout**.
 
-For straightforward product names, quantities, prices and acceptance
-messages, the backend can understand the request locally.
+5.  The frontend sends the returned payment details to:
 
-When the language is less structured, Gemini 2.5 Flash acts as a
-fallback.
+    ``` text
+    POST /payment/verify
+    ```
 
-This keeps the LLM focused on what it does well --- understanding
-language --- while keeping financial behavior predictable and
-testable.
+6.  The backend verifies the Razorpay signature using **HMAC-SHA256**
+    and a timing-safe comparison.
 
-💳 Razorpay Payment Flow
+7.  After successful verification, the session is treated as paid and
+    contributes to the merchant dashboard metrics.
 
-The negotiation does not stop at "here is your offer." An accepted
-deal can become an actual transaction.
+This keeps the negotiated amount tied to backend session state rather
+than trusting a price supplied by the browser.
 
-Deal Accepted
-      ↓
-Frontend requests payment order
-      ↓
-FastAPI creates Razorpay order
-      ↓
-Razorpay Checkout opens
-      ↓
-Customer completes payment
-      ↓
-Payment details return to backend
-      ↓
-Server verifies payment signature
-      ↓
-Order marked as paid
+## Merchant dashboard
 
-The amount sent to Razorpay comes from the accepted negotiation
-session, rather than a price entered by the frontend.
+The prototype includes a merchant-facing dashboard with:
 
-Payment verification happens on the backend before the transaction is
-treated as successful.
+-   **Total negotiations**
+-   **Accepted deals**
+-   **Paid orders**
+-   **Revenue**
+-   **Customer savings**
+-   **Average discount**
 
-📊 Merchant Dashboard
+The dashboard is intentionally lightweight and uses the current
+in-memory session store.
 
-The merchant-facing dashboard connects negotiation activity back to
-commerce outcomes.
+## Automated testing
 
-It currently tracks:
+The negotiation engine is tested separately from Gemini so that the
+financial logic can be validated deterministically.
 
-Metric                   What it shows
+Run:
 
-Total Negotiations   Number of negotiation sessions started
-Accepted Deals       Negotiations that reached an agreement
-Paid Orders          Successfully paid negotiated orders
-Revenue              Revenue generated from paid deals
-Customer Savings     Savings created through negotiation
-Average Discount     Average discount across negotiated deals
+``` bash
+python judge_simulator.py
+```
 
-For this prototype, session and dashboard data are stored in memory.
+The current suite contains **60 scenarios across 6 categories**:
 
-🛠️ Tech Stack
+  ------------------------------------------------------------------------
+  Category                                     Cases Focus
+  --------------------- ---------------------------- ---------------------
+  Basic negotiation                               10 Initial offers and
+                                                     safe counteroffers
 
-Layer              Technology
+  Quantity safety                                 10 Quantity changes and
+                                                     floor-safe quantity
+                                                     deals
 
-Frontend       React, Vite, JavaScript, CSS
-UI             Lucide React
-Backend        Python, FastAPI, Uvicorn
-Product Data   Pandas
-AI / NLP       Google Gemini 2.5 Flash + Local Parsing
-Payments       Razorpay Checkout
-Testing        Custom Evidence-Based Automated Judge
+  Cart negotiation                                10 Multi-item
+                                                     negotiation behavior
 
-📁 Project Structure
+  Floor protection                                10 Repeated below-floor
+                                                     pressure
 
-ai_negotiator/
+  Round limits                                    10 Five-round
+                                                     enforcement and final
+                                                     offers
+
+  Edge & consistency                              10 Extreme offers and
+                                                     acceptance behavior
+
+  **Total**                                   **60** **End-to-end
+                                                     negotiation
+                                                     behavior**
+  ------------------------------------------------------------------------
+
+Current result:
+
+``` text
+FINAL SCORE: 60/60
+PASS RATE:   100.0%
+STATUS:      READY FOR FINAL DEMO
+```
+
+The judge uses the real cart and negotiation logic and records
+assertions, transcripts, and post-action session state.
+
+**Gemini is intentionally not called by this suite**, which keeps the
+pricing and guardrail tests reproducible.
+
+## Running it
+
+### Backend
+
+``` bash
+cd AI-Negotiator-main
+pip install -r requirements.txt
+```
+
+Create a `.env` file:
+
+``` env
+GEMINI_API_KEY=your_key
+RAZORPAY_KEY_ID=your_test_key_id
+RAZORPAY_KEY_SECRET=your_test_key_secret
+```
+
+Then start the API:
+
+``` bash
+uvicorn api:app --reload
+```
+
+The backend runs at:
+
+``` text
+http://127.0.0.1:8000
+```
+
+FastAPI interactive docs are available at:
+
+``` text
+http://127.0.0.1:8000/docs
+```
+
+### Frontend
+
+Open another terminal:
+
+``` bash
+cd frontend
+npm install
+npm run dev
+```
+
+The Vite frontend normally runs at:
+
+``` text
+http://localhost:5173
+```
+
+### CLI demo
+
+The raw negotiation flow can also be run without the frontend:
+
+``` bash
+python main.py
+```
+
+### Automated test suite
+
+``` bash
+python judge_simulator.py
+```
+
+## Project structure
+
+``` text
+AI-Negotiator-main/
 │
 ├── api.py
 ├── main.py
 ├── judge_simulator.py
 ├── judge_cases.json
-├── .env
+├── requirements.txt
+│
+├── data/
+│   └── products.csv
 │
 ├── src/
 │   ├── cart_builder.py
 │   ├── cart_engine.py
 │   ├── data_loader.py
 │   ├── llm_agent.py
-│   ├── negotiability.py
 │   ├── negotiation_engine.py
 │   ├── negotiation_session.py
+│   ├── negotiability.py
 │   ├── pricing_engine.py
 │   ├── product_resolver.py
 │   ├── quantity_offer.py
@@ -458,215 +422,46 @@ ai_negotiator/
     └── src/
         ├── App.jsx
         └── index.css
-
-🧪 Testing
-
-The negotiation engine has its own automated behavioral test suite
-because pricing safety should not depend on a happy-path demo.
-
-The suite contains 60 cases:
-
-Test Group                                   Cases What It Checks
-
-Basic Negotiation                           10 Initial pricing and
-safe counteroffers
-
-Quantity Safety                             10 Quantity changes and
-floor-safe deals
-
-Multi-item Carts                            10 Cart-level
-negotiation
-
-Floor Protection                            10 Repeated below-floor
-pressure
-
-Round Limits                                10 Five rounds, final
-offer and blocked
-sixth attempt
-
-Edge &                                        10 Extreme offers and
-Consistency                                      acceptance behavior
-
-✅ Current Result
-
-FINAL SCORE: 60/60
-PASS RATE:   100.0%
-STATUS:      READY FOR FINAL DEMO
-
-The evidence report records assertions, customer offers, AI decisions,
-and post-action session state, rather than only storing a final
-pass/fail value.
-
-The judge intentionally does not call Gemini, which isolates the
-deterministic financial logic and keeps the result reproducible.
-
-Run it with:
-
-python judge_simulator.py
-
-🚀 Running Locally
-
-1. Clone the repository
-
-git clone <YOUR_REPOSITORY_URL>
-cd ai_negotiator
-
-2. Create a virtual environment
-
-python -m venv venv
-
-Windows Command Prompt
-
-venv\Scripts\activate
-
-Git Bash
-
-source venv/Scripts/activate
-
-3. Install backend dependencies
-
-pip install -r requirements.txt
-
-4. Add environment variables
-
-Create a .env file in the project root:
-
-GEMINI_API_KEY=your_gemini_api_key
-RAZORPAY_KEY_ID=your_razorpay_key_id
-RAZORPAY_KEY_SECRET=your_razorpay_key_secret
-
-⚠️ Keep .env inside .gitignore. Never commit API keys or
-Razorpay secrets.
-
-5. Start the backend
-
-uvicorn api:app --reload
-
-Backend:
-
-http://127.0.0.1:8000
-
-6. Start the frontend
-
-Open a second terminal:
-
-cd frontend
-npm install
-npm run dev
-
-Vite normally serves the app at:
-
-http://localhost:5173
-
-Keep both terminals running while using the application.
-
-🎬 Suggested Demo Flow
-
-1. Add the Bluetooth Speaker to the cart.
-
-2. Click "Negotiate with AI."
-Show that the offer comes from the pricing system rather than an
-arbitrary discount.
-
-3. Show the quantity opportunity.
-Demonstrate the option to buy two units at a better per-unit price.
-
-4. Reject it and continue to price negotiation.
-Make a reasonable counteroffer and show the AI respond.
-
-5. Try an unrealistically low offer.
-Demonstrate that the ₹2,400 merchant floor cannot be crossed.
-
-6. Reach and accept a deal.
-
-7. Complete the payment through Razorpay.
-
-8. Open the Merchant Dashboard.
-Show how the completed flow affects merchant-facing metrics.
-
-9. Finish with the automated test result.
-
-60/60
-100.0%
-READY FOR FINAL DEMO
-
-🌟 What Makes This Different?
-
-This project is not just a chatbot attached to checkout.
-
-The interesting part is the boundary between conversation and commerce
-logic.
-
-The customer can speak naturally.
-
-Gemini can interpret less-structured language.
-
-The negotiation engine controls concessions.
-
-The pricing engine protects the merchant floor.
-
-The quantity engine looks for opportunities to grow cart value.
-
-Razorpay turns the accepted negotiation into a payment.
-
-The system has room to behave like an agent without handing an LLM unrestricted control over pricing.
-
-📌 Current Scope
-
-This is a buildathon prototype, not a production commerce platform.
-
-The current version uses:
-
-an intentionally small product catalog
-
-in-memory negotiation sessions
-
-in-memory merchant dashboard metrics
-
-These choices keep the prototype focused on the central question:
-
-Can an AI negotiate a transaction while protecting the merchant's
-economics?
-
-The working negotiation flow, deterministic guardrails, Razorpay
-integration and automated behavioral tests demonstrate that idea end to
-end.
-
-🔭 Where It Could Go Next
-
-A production version could extend the same architecture with:
-
-persistent negotiation and order storage
-
-merchant accounts and authentication
-
-configurable merchant pricing policies
-
-inventory-aware negotiation
-
-customer and product-level personalization
-
-conversion experiments and A/B testing
-
-richer negotiation analytics
-
-payment webhooks and reconciliation
-
-learned negotiation strategies constrained by deterministic merchant
-rules
-
-The principle stays the same:
-
-The AI can handle the conversation. The merchant still controls the economics.
-
-::: {align="center"}
-
-Built for Razorpay AI Buildathon 2026
-
-AI Growth & Agentic Commerce
-
-AI Payment Negotiator explores an agentic checkout where AI does more
-than recommend what to buy. It participates in the transaction itself,
-looking for a deal the customer is willing to accept while staying
-inside the merchant's business constraints.
-:::
+```
+
+## Tech stack
+
+**Backend:** FastAPI · Python · pandas\
+**AI:** Gemini 2.5 Flash (`google-genai`)\
+**Payments:** Razorpay Python SDK + Razorpay Checkout\
+**Frontend:** React · Vite · JavaScript · CSS\
+**Testing:** Custom deterministic negotiation judge
+
+## Known limitations
+
+This is a buildathon prototype, so a few things are intentionally kept
+simple:
+
+-   **Sessions are stored in memory.** The current `sessions = {}`
+    approach is suitable for a demo and single-process prototype, not a
+    production data layer.
+-   **The product catalog is static.** Products are loaded from
+    `data/products.csv` rather than a live merchant inventory system.
+-   **Razorpay is configured for test-mode payments** during development
+    and demonstration.
+-   **Dashboard metrics are derived from the in-memory sessions**, so
+    they reset when the backend restarts.
+-   The current catalog and merchant rules are intentionally small
+    enough to make negotiation behavior easy to demonstrate and test.
+
+## What this prototype is trying to show
+
+The project is not about attaching a chatbot to a checkout page.
+
+The main idea is the separation between **conversation and commerce
+logic**:
+
+-   the customer can speak naturally,
+-   Gemini can help interpret the request,
+-   deterministic code controls pricing,
+-   merchant constraints remain enforceable,
+-   quantity offers can create a larger cart,
+-   and Razorpay turns an accepted negotiation into a transaction.
+
+> **The AI handles the conversation. The merchant still controls the
+> economics.**
