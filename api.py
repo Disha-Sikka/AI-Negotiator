@@ -40,33 +40,47 @@ RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 
 def extract_price_locally(message):
     """
-    Extract a price directly from simple customer messages.
+    Extract the customer's intended price from a negotiation message.
 
-    Examples:
-        4500
-        ₹4500
-        Rs 4500
-        I can do 4,500
-        I can pay ₹4,500
+    Handles examples such as:
+        9000
+        ₹9000
+        Rs 9000
+        I can pay 9000
+        I want 2 at 9000
+
+    When both a quantity and a price are present, the price is preferred.
     """
 
-    pattern = (
-        r"(?:₹|rs\.?|inr)?\s*"
-        r"([0-9][0-9,]*(?:\.[0-9]+)?)"
+    text = message.lower().replace(",", "")
+
+    # Strong price markers first.
+    explicit_patterns = [
+        r"(?:₹|rs\.?|inr)\s*([0-9]+(?:\.[0-9]+)?)",
+        r"(?:at|for|pay|offer|do)\s*(?:₹|rs\.?|inr)?\s*([0-9]+(?:\.[0-9]+)?)"
+    ]
+
+    for pattern in explicit_patterns:
+        matches = re.findall(pattern, text)
+
+        if matches:
+            try:
+                return float(matches[-1])
+            except ValueError:
+                pass
+
+    # Fallback: use the last number in the message.
+    # This correctly handles "I want 2 at 9000".
+    numbers = re.findall(
+        r"[0-9]+(?:\.[0-9]+)?",
+        text
     )
 
-    match = re.search(
-        pattern,
-        message.lower()
-    )
-
-    if not match:
+    if not numbers:
         return None
 
-    value = match.group(1).replace(",", "")
-
     try:
-        return float(value)
+        return float(numbers[-1])
     except ValueError:
         return None
 
@@ -105,8 +119,8 @@ def is_quantity_acceptance(message):
 
 def is_quantity_rejection(message):
     """
-    Detect whether the customer does not want
-    to increase quantity.
+    Detect whether the customer is rejecting
+    the active quantity suggestion.
     """
 
     text = message.lower().strip()
@@ -118,13 +132,57 @@ def is_quantity_rejection(message):
         "i only need one",
         "i just need one",
         "don't need more",
+        "dont need more",
         "do not need more",
         "can't buy more",
+        "cant buy more",
         "cannot buy more",
         "not more",
         "no more",
         "don't want more",
+        "dont want more",
         "do not want more"
+    ]
+
+    if any(
+        phrase in text
+        for phrase in rejection_phrases
+    ):
+        return True
+
+    # Treat a leading "no" as rejection of the quantity suggestion,
+    # while keeping "no problem" from being misclassified.
+    if (
+        (text == "no" or text.startswith("no ") or text.startswith("no,"))
+        and not text.startswith("no problem")
+    ):
+        return True
+
+    return text in {"nope", "nah"}
+
+
+def is_purchase_rejection(message):
+    """
+    Detect that the customer wants to stop the purchase entirely.
+    This must be checked before generic acceptance phrases such as "okay".
+    """
+
+    text = message.lower().strip()
+
+    rejection_phrases = [
+        "don't want to buy",
+        "dont want to buy",
+        "do not want to buy",
+        "not going to buy",
+        "not buying",
+        "i won't buy",
+        "i wont buy",
+        "cancel the order",
+        "cancel this",
+        "cancel",
+        "leave it",
+        "never mind",
+        "nevermind"
     ]
 
     return any(
@@ -317,11 +375,27 @@ class VerifyPaymentRequest(BaseModel):
     razorpay_signature: str
 
 
+class DirectCheckoutItem(BaseModel):
+    product_id: str
+    quantity: int
+
+
+class DirectCheckoutRequest(BaseModel):
+    items: list[DirectCheckoutItem]
+
+
+class DirectVerifyPaymentRequest(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+
+
 # ============================================================
 # Temporary Session Storage
 # ============================================================
 
 sessions = {}
+direct_orders = {}
 
 
 # ============================================================
@@ -598,6 +672,38 @@ def continue_negotiation(
 
 
     message = request.message.strip()
+
+
+    # ========================================================
+    # 2. CUSTOMER CANCELS PURCHASE
+    # ========================================================
+
+    if is_purchase_rejection(message):
+
+        session.quantity_opportunity = None
+        session.cancelled = True
+
+        session.history.append({
+            "round": session.round_number,
+            "customer_offer": None,
+            "agent_offer": session.current_offer,
+            "decision": "CANCELLED"
+        })
+
+        return {
+            "success": True,
+            "decision": "CANCELLED",
+            "message": (
+                "No problem. I've ended this negotiation. "
+                "You can return to the cart whenever you want."
+            ),
+            "offer": session.current_offer,
+            "round": session.round_number,
+            "remaining_rounds": max(
+                0,
+                MAX_ROUNDS - session.round_number
+            )
+        }
 
 
     # ========================================================
@@ -984,6 +1090,180 @@ def continue_negotiation(
 
         "offer":
             session.current_offer
+    }
+
+
+# ============================================================
+# Direct Checkout - Buy Without Negotiation
+# ============================================================
+
+@app.post("/payment/direct/create-order")
+def create_direct_payment_order(
+    request: DirectCheckoutRequest
+):
+    if razorpay_client is None:
+        return {
+            "success": False,
+            "message": (
+                "Razorpay is not configured. "
+                "Please add your Razorpay keys to .env."
+            )
+        }
+
+    if not request.items:
+        return {
+            "success": False,
+            "message": "Your cart is empty."
+        }
+
+    total_rupees = 0.0
+    order_items = []
+
+    for requested_item in request.items:
+
+        if requested_item.quantity <= 0:
+            return {
+                "success": False,
+                "message": "Invalid item quantity."
+            }
+
+        matches = products[
+            products["product_id"]
+            == requested_item.product_id
+        ]
+
+        if matches.empty:
+            return {
+                "success": False,
+                "message": (
+                    f"Product {requested_item.product_id} "
+                    "was not found."
+                )
+            }
+
+        product = matches.iloc[0]
+        unit_price = float(
+            product["selling_price"]
+        )
+
+        total_rupees += (
+            unit_price
+            * requested_item.quantity
+        )
+
+        order_items.append({
+            "product_id":
+                requested_item.product_id,
+            "product_name":
+                str(product["product_name"]),
+            "quantity":
+                requested_item.quantity,
+            "unit_price":
+                unit_price
+        })
+
+    amount = int(
+        round(total_rupees * 100)
+    )
+
+    if amount <= 0:
+        return {
+            "success": False,
+            "message": "Invalid payment amount."
+        }
+
+    try:
+        order = razorpay_client.order.create(
+            data={
+                "amount": amount,
+                "currency": "INR",
+                "receipt":
+                    f"direct_{len(direct_orders) + 1}",
+                "notes": {
+                    "checkout_type": "direct"
+                }
+            }
+        )
+
+        direct_orders[order["id"]] = {
+            "status": "created",
+            "amount": amount,
+            "items": order_items
+        }
+
+        return {
+            "success": True,
+            "order_id": order["id"],
+            "amount": amount,
+            "currency": "INR",
+            "key_id": RAZORPAY_KEY_ID
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "message": (
+                "Unable to create payment order: "
+                f"{str(e)}"
+            )
+        }
+
+
+@app.post("/payment/direct/verify")
+def verify_direct_payment(
+    request: DirectVerifyPaymentRequest
+):
+    if not RAZORPAY_KEY_SECRET:
+        return {
+            "success": False,
+            "message":
+                "Razorpay secret is not configured."
+        }
+
+    order_record = direct_orders.get(
+        request.razorpay_order_id
+    )
+
+    if order_record is None:
+        return {
+            "success": False,
+            "message":
+                "Direct checkout order not found."
+        }
+
+    generated_signature = hmac.new(
+        RAZORPAY_KEY_SECRET.encode(),
+        (
+            request.razorpay_order_id
+            + "|"
+            + request.razorpay_payment_id
+        ).encode(),
+        hashlib.sha256
+    ).hexdigest()
+
+    if not hmac.compare_digest(
+        generated_signature,
+        request.razorpay_signature
+    ):
+        return {
+            "success": False,
+            "message":
+                "Payment verification failed."
+        }
+
+    order_record["status"] = "paid"
+    order_record["payment_id"] = (
+        request.razorpay_payment_id
+    )
+
+    return {
+        "success": True,
+        "message":
+            "Payment verified successfully.",
+        "payment_id":
+            request.razorpay_payment_id,
+        "order_id":
+            request.razorpay_order_id
     }
 
 

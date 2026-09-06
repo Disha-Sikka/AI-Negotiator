@@ -59,6 +59,7 @@ function App() {
   const [loading, setLoading] = useState(false);
 
   const [accepted, setAccepted] = useState(false);
+  const [cancelled, setCancelled] = useState(false);
 
   const [finalPrice, setFinalPrice] = useState(null);
 
@@ -142,14 +143,151 @@ function App() {
   // BUY WITHOUT NEGOTIATION
   // --------------------------------------------------
 
-  const buyWithoutNegotiation = () => {
-    if (cart.length === 0) return;
+  const buyWithoutNegotiation = async () => {
+    if (cart.length === 0 || paymentLoading) return;
 
-    alert(
-      `Standard checkout selected for ₹${cartTotal.toLocaleString(
-        "en-IN"
-      )}.`
-    );
+    setPaymentLoading(true);
+
+    try {
+      if (!window.Razorpay) {
+        await new Promise((resolve, reject) => {
+          const script =
+            document.createElement("script");
+
+          script.src =
+            "https://checkout.razorpay.com/v1/checkout.js";
+
+          script.onload = resolve;
+          script.onerror = reject;
+
+          document.body.appendChild(script);
+        });
+      }
+
+      const orderResponse = await fetch(
+        `${API_URL}/payment/direct/create-order`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            items: cart.map((item) => ({
+              product_id: item.id,
+              quantity: item.quantity
+            }))
+          })
+        }
+      );
+
+      const orderData =
+        await orderResponse.json();
+
+      if (!orderResponse.ok || !orderData.success) {
+        alert(
+          orderData.message ||
+            "Unable to create payment order."
+        );
+        setPaymentLoading(false);
+        return;
+      }
+
+      const options = {
+        key: orderData.key_id,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "AI Negotiator",
+        description: "Standard checkout",
+        order_id: orderData.order_id,
+
+        handler: async function (response) {
+          try {
+            const verifyResponse = await fetch(
+              `${API_URL}/payment/direct/verify`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type":
+                    "application/json"
+                },
+                body: JSON.stringify({
+                  razorpay_order_id:
+                    response.razorpay_order_id,
+                  razorpay_payment_id:
+                    response.razorpay_payment_id,
+                  razorpay_signature:
+                    response.razorpay_signature
+                })
+              }
+            );
+
+            const verifyData =
+              await verifyResponse.json();
+
+            if (
+              verifyResponse.ok &&
+              verifyData.success
+            ) {
+              alert(
+                `Payment successful for ₹${cartTotal.toLocaleString(
+                  "en-IN"
+                )}.`
+              );
+              setCart([]);
+            } else {
+              alert(
+                verifyData.message ||
+                  "Payment verification failed."
+              );
+            }
+          } catch (error) {
+            console.error(error);
+            alert(
+              "Payment verification failed."
+            );
+          } finally {
+            setPaymentLoading(false);
+          }
+        },
+
+        modal: {
+          ondismiss: function () {
+            setPaymentLoading(false);
+          }
+        },
+
+        theme: {
+          color: "#111827"
+        }
+      };
+
+      const razorpay =
+        new window.Razorpay(options);
+
+      razorpay.on(
+        "payment.failed",
+        function (response) {
+          console.error(
+            "Payment failed:",
+            response
+          );
+
+          setPaymentLoading(false);
+
+          alert(
+            "Payment failed. Please try again."
+          );
+        }
+      );
+
+      razorpay.open();
+    } catch (error) {
+      console.error(error);
+      alert(
+        "Unable to start payment."
+      );
+      setPaymentLoading(false);
+    }
   };
 
   // --------------------------------------------------
@@ -162,6 +300,7 @@ function App() {
     setShowNegotiator(true);
     setLoading(true);
     setAccepted(false);
+    setCancelled(false);
     setPaymentSuccess(false);
     setFinalPrice(null);
     setMessages([]);
@@ -279,7 +418,8 @@ function App() {
       !input.trim() ||
       !sessionId ||
       loading ||
-      accepted
+      accepted ||
+      cancelled
     ) {
       return;
     }
@@ -362,6 +502,12 @@ function App() {
       if (data.decision === "ACCEPT") {
         setAccepted(true);
         setFinalPrice(data.offer);
+      }
+
+
+      if (data.decision === "CANCELLED") {
+        setCancelled(true);
+        setAccepted(false);
       }
 
       // ----------------------------------------------
@@ -852,8 +998,11 @@ function App() {
                     fontSize: "15px",
                     fontWeight: 700
                   }}
+                  disabled={paymentLoading}
                 >
-                  Buy Now
+                  {paymentLoading
+                    ? "Opening Payment..."
+                    : "Buy Now"}
                 </button>
 
                 <button
@@ -1065,14 +1214,19 @@ function App() {
                       </div>
 
                       <div>
-                        Customer offer: ₹
-                        {Number(entry.customer_offer).toLocaleString(
-                          "en-IN",
-                          {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                          }
-                        )}
+                        Customer offer:{" "}
+                        {entry.customer_offer === null ||
+                        entry.customer_offer === undefined
+                          ? "—"
+                          : `₹${Number(
+                              entry.customer_offer
+                            ).toLocaleString(
+                              "en-IN",
+                              {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                              }
+                            )}`}
                       </div>
 
                       <div>
@@ -1178,6 +1332,19 @@ function App() {
                 </div>
 
               )
+
+            ) : cancelled ? (
+
+              <div className="payment-area">
+                <div className="accepted">
+                  Negotiation ended
+                </div>
+
+                <p>
+                  No deal was accepted. You can close this window
+                  or return to the cart.
+                </p>
+              </div>
 
             ) : (
 
